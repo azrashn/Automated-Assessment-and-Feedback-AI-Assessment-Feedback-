@@ -18,3 +18,9 @@ class ExamService:
 
     def finalize_exam(self, session_id):
         return {}
+    
+    def determine_next_module(self, student_id: int, current_skill: str):
+        pass
+
+    def get_exam_duration(self, session_id: int):
+        pass

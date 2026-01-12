@@ -12,10 +12,14 @@ class QuestionRepository:
 
         return None 
 
-    def find_questions(self, difficulty, skill_category): 
-
-        return [] 
+   def find_questions(self, difficulty: str, skill_category: str):
+    return self.db.query(Question).filter(
+    Question.difficulty == difficulty,
+    Question.skill_category == skill_category,
+    Question.is_active == True
+    ).all()
 
     def get_all(self): 
 
         return []
+

@@ -6,9 +6,26 @@ router = APIRouter()
 
 @router.get("/start") 
 
-def start_exam(db: Session = Depends(get_db)): 
+def start_exam(skill: str, level: str = "A1", user_id: int = Query(...), db: Session = Depends(get_db)):
+    
+    service = ExamService(db)
+    session, questions = service.start_exam_session(user_id, skill, level)
+    if not questions:
+    raise HTTPException(status_code=404, detail="Soru bulunamadı")
+    
+    remaining_seconds = 0
+    if session.end_time:
+        delta = session.end_time - datetime.now()
+        remaining_seconds = max(0, int(delta.total_seconds()))
+    else:
+        remaining_seconds = 1200
 
-    return {"msg": "Start Exam Hazır"} 
+    return {
+        "session_id": session.session_id,
+        "questions": questions,
+        "remaining_seconds": remaining_seconds
+    }
+ 
 
 @router.post("/submit-answer") 
 
@@ -27,3 +44,4 @@ def upload_audio(file: UploadFile, db: Session = Depends(get_db)):
 def finalize_exam(db: Session = Depends(get_db)): 
 
     return {"score": 0} 
+

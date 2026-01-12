@@ -7,13 +7,40 @@ class Question(Base):
 
     __tablename__ = "questions" 
 
-    pass 
+    question_id = Column(Integer, primary_key=True, index=True)
+    
+    text = Column(Text, nullable=False)
+    type = Column(String(50), nullable=False) # MULTIPLE_CHOICE, OPEN_ENDED
+    difficulty = Column(String(20), nullable=False) # A1, A2...
+    skill_category = Column(String(50), nullable=False) # READING, WRITING...
+    media_url = Column(String(255), nullable=True)
+    is_active = Column(Boolean, default=True)
+    
+    keywords = Column(Text, nullable=True)
+    
+    options = relationship("QuestionOption", back_populates="question",
+    cascade="all, delete-orphan")
+    answers = relationship("Answer", back_populates="question")
+    class QuestionOption(Base):
+    __tablename__ = "question_options"
+    option_id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey("questions.question_id"))
+    content = Column(String(255), nullable=False)
+    is_correct = Column(Boolean, default=False)
+    
+    question = relationship("Question", back_populates="options") 
 
 class QuestionOption(Base): 
 
     __tablename__ = "question_options" 
 
-    pass 
+    option_id = Column(Integer, primary_key=True, index=True)
+    question_id = Column(Integer, ForeignKey("questions.question_id"))
+    content = Column(String(255), nullable=False)
+    is_correct = Column(Boolean, default=False)
+    
+    question = relationship("Question", back_populates="options")
+
 
 class ExamSession(Base): 
     __tablename__ = "exam_sessions" 
@@ -52,3 +79,4 @@ class Answer(Base):
 
     session = relationship("ExamSession", back_populates="answers")
     question = relationship("Question", back_populates="answers")
+

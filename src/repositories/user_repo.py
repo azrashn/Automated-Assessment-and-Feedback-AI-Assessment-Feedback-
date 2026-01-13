@@ -4,10 +4,10 @@ from src.models.user import User, Student, LevelRecord
 from src.schemas.auth import UserCreate 
 
 class UserRepository:
-    def __init__(self, db):
+    def __init__(self, db: Session):
         self.db = db
 
-    def create_student(self, user_data, hashed_password, student_number):
+    def create_student(self, user_data: UserCreate, hashed_password: str, student_number: str):
         # Student nesnesi oluşturduğumuzda User tablosu OTOMATİK dolar.
         new_student = Student(
             username=user_data.fullname,  # Fullname'i username olarak kullanıyoruz
@@ -36,11 +36,11 @@ class UserRepository:
         self.db.refresh(new_student)
         return new_student
 
-    def check_email(self, email):
+    def check_email(self, email: str) -> bool:
         return self.db.query(User).filter(User.email == email).first() is not None
 
-    def find_user_by_email(self, email):
+    def find_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
 
-    def find_user_by_id(self, uid):
+    def find_user_by_id(self, uid: int):
         return self.db.query(User).get(uid)

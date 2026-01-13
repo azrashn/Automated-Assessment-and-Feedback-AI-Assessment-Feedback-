@@ -53,7 +53,7 @@ class AIModule:
             return ""
         
 
-   def analyze_writing(self, text: str, required_keywords: list = None) -> dict:
+def analyze_writing(self, text: str, required_keywords: list = None) -> dict:
         """
         DENGELİ WRITING ANALİZİ (Mevcut Mantık Korundu)
         """
@@ -158,12 +158,25 @@ class AIModule:
 def analyze_skill(self, skill_type, data, keywords=None):
         return 0.0
         
-def calculate_overall_score(self, scores):
-        return 0.0
+def calculate_overall_score(self, scores: dict) -> float:
+        if not scores: return 0.0
+        return round(sum(scores.values()) / len(scores), 1)
         
         
+def generate_feedback(self, scores: dict) -> str:
+        """
+        Sınav sonu genel değerlendirme metni oluşturur.
+        """
+        avg = self.calculate_overall_score(scores)
+        feedback = []
         
-        
-        
-def generate_feedback(self, scores):
-        return ""
+        if avg >= 85:
+            feedback.append("🏆 Mükemmel! İngilizce seviyen C1-C2 bandında görünüyor.")
+        elif avg >= 70:
+            feedback.append("✅ Gayet iyi. B2 seviyesindesin.")
+        elif avg >= 50:
+            feedback.append("📈 Ortalama. B1 seviyesindesin, biraz daha pratik yapmalısın.")
+        else:
+            feedback.append("⚠️ Geliştirilmeli. A1-A2 seviyesindesin.")
+            
+        return " ".join(feedback)

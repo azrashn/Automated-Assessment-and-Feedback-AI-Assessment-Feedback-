@@ -82,8 +82,92 @@ class ExamService:
         # Kayıt
         self.repo.save_answer(session_id, question_id, selected_option_id, text_response)
 
-    def finalize_exam(self, session_id):
-        return {}
+    def finalize_exam(self, session_id: int, skill_name: str = None):
+        session = self.repo.get_session(session_id)
+        if not session: raise HTTPException(404, "Session not found")
+        
+        # Finalize ederken de süre kontrolü yapalım
+        if session.status == "EXPIRED":
+            raise HTTPException(400, "Sınav süresi dolduğu için sonuçlandırılamadı.")
+        
+        scores = {}
+        detected_speech_text = ""
+
+        # --- A. Soruları Puanla ---
+        for ans in session.answers:
+            q = ans.question
+            score = 0.0
+            
+            if q.type == "MULTIPLE_CHOICE":
+                correct_opt = next((o for o in q.options if o.is_correct), None)
+                if correct_opt and ans.selected_option_id == correct_opt.option_id:
+                    score = 100.0
+            else:
+                # AI Analizi
+                skill_cat = (q.skill_category or "WRITING").upper()
+                keywords = q.keywords
+
+                if skill_cat == "SPEAKING":
+                    audio_path = ans.content or ans.audio_path
+                    if audio_path:
+                        full_path = f"src{audio_path}" if audio_path.startswith("/static") else audio_path
+                        transcribed_text = self.ai.speech_to_text(full_path)
+                        ans.content = transcribed_text 
+                        detected_speech_text = transcribed_text
+
+                        if transcribed_text:
+                            k_list = [k.strip() for k in keywords.split(",")] if keywords else []
+                            analysis = self.ai.analyze_writing(transcribed_text, required_keywords=k_list)
+                            bonus = 1.15 if "⛔" not in analysis["feedback"] else 1.0
+                            score = min(100, analysis["score"] * bonus)
+                        else:
+                            score = 0.0
+                    else:
+                        score = 0.0
+                else:
+                    data = ans.content or ""
+                    k_list = [k.strip() for k in keywords.split(",")] if keywords else []
+                    result = self.ai.analyze_writing(data, required_keywords=k_list)
+                    score = result["score"]
+            
+            skill_key = q.skill_category or "General"
+            if skill_key in scores:
+                scores[skill_key] = (scores[skill_key] + score) / 2
+            else:
+                scores[skill_key] = score
+                
+            # Eğer hiç cevap yoksa (scores boşsa), dışarıdan gelen skill ismini kullan
+        if not scores and skill_name:
+            scores[skill_name.upper()] = 0.0    
+        
+        # --- B. Sonuçları Hesapla ---
+        overall_score = self.ai.calculate_overall_score(scores)
+        session.overall_score = overall_score
+        session.status = "COMPLETED"
+        session.end_time = datetime.now() # Gerçek bitiş zamanı
+        
+        detected_level = "A1"
+        if overall_score >= 85: detected_level = "C1"
+        elif overall_score >= 70: detected_level = "B2"
+        elif overall_score >= 50: detected_level = "B1"
+        elif overall_score >= 30: detected_level = "A2"
+        session.detected_level = detected_level 
+
+        # --- C. Karne Güncelle ---
+        self._update_level_record(session.student_id, scores, detected_level)
+
+        # --- D. Feedback ---
+        fb_text = self.ai.generate_feedback(scores)
+        if detected_speech_text:
+            fb_text += f"\n\n🗣️ Algılanan Konuşma:\n\"{detected_speech_text}\""
+        
+        self.repo.commit()
+        
+        return {
+            "overall_score": overall_score,
+            "feedback": fb_text,
+            "breakdown": scores
+        }
     
     def determine_next_module(self, student_id: int, current_skill: str):
         pass

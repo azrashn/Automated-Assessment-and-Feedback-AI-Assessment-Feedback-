@@ -4,9 +4,11 @@ class QuestionRepository:
 
         self.db = db 
 
-    def add_question(self, q): 
-
-        pass 
+    def add_question(self, q: Question):
+        self.db.add(q)
+        self.db.commit()
+        self.db.refresh(q)
+        return q
 
     def get_by_id(self, qid): 
 
@@ -19,7 +21,5 @@ class QuestionRepository:
     Question.is_active == True
     ).all()
 
-    def get_all(self): 
-
-        return []
-
+    def get_all(self):
+        return self.db.query(Question).all()

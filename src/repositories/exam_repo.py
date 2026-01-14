@@ -48,14 +48,42 @@ class ExamRepository:
     def get_session(self, sid):
         return None
 
-    def find_records_by_student_id(self, student_id):
-        return []
+    def find_records_by_student_id(self, student_id: int):
+        return self.db.query(ExamSession).filter(ExamSession.student_id == student_id).all()
 
-    def save_answer(self, answer):
-        pass
+    def save_answer(self, session_id: int, question_id: int, selected_option_id: int = None, text_response: str = None):
+        existing_ans = self.db.query(Answer).filter(
+            Answer.session_id == session_id,
+            Answer.question_id == question_id
+        ).first()
 
-    def get_answer_by_session_question(self, session_id, question_id):
-        return None
+        if existing_ans:
+            existing_ans.selected_option_id = selected_option_id
+            existing_ans.content = text_response
+        else:
+            new_ans = Answer(
+                session_id=session_id,
+                question_id=question_id,
+                selected_option_id=selected_option_id,
+                content=text_response
+            )
+            self.db.add(new_ans)
+        
+        
+        session = self.get_session(session_id)
+        if session:
+            session.last_activity = func.now()
+
+        self.db.commit()
+
+    def get_answer_by_session_question(self, session_id: int, question_id: int):
+        return self.db.query(Answer).filter(
+            Answer.session_id == session_id,
+            Answer.question_id == question_id
+        ).first()
+    
+    def commit(self):
+        self.db.commit()
 
     def save_final_result(self, session, report):
         pass

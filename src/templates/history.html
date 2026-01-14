@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <title>Geçmiş Sınavlar - AI Assessment</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    function checkSession() {
+        if (!localStorage.getItem("user_id")) {
+             window.location.replace("/login.html");
+        }
+    }
+    checkSession();
+
+    // Geri tuşu engelleme ve sayfa yenileme ayarları
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () { history.go(1); };
+    window.addEventListener("pageshow", function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+  </script>
+  
+  <style>
+    /* --- TASARIM DEĞİŞKENLERİ --- */
+    :root { 
+        --bg-body:#020617; 
+        --bg-card:#0f172a; 
+        --bg-hover:#1e293b; 
+        --text-main:#f8fafc; 
+        --text-muted:#94a3b8; 
+        --primary:#4f46e5; 
+        --accent:#8b5cf6;
+        --border-color:#334155; 
+        --success:#22c55e; 
+        --danger:#ef4444; 
+        --warning:#f59e0b; 
+    }
+    
+    body { 
+        font-family: 'Inter', sans-serif; 
+        background-color: var(--bg-body); 
+        color: var(--text-main); 
+        margin: 0; 
+        min-height: 100vh;
+    }
+    
+    a { text-decoration: none; color: inherit; }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+        width: 260px; 
+        background-color: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        display: flex; flex-direction: column;
+        padding: 1.5rem; 
+        position: fixed; top: 0; bottom: 0; left: 0;
+        z-index: 10;
+        box-sizing: border-box;
+    }
+
+    .brand { 
+        display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2.5rem; 
+        padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);
+    }
+    .logo-icon {
+        width: 32px; height: 32px; 
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white; border-radius: 8px; 
+        display: flex; align-items: center; justify-content: center;
+    }
+    .brand h1 { font-size: 1.2rem; font-weight: 700; color: white; margin: 0; }
+
+    .nav-links { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    
+    .nav-item {
+        display: flex; align-items: center; gap: 0.75rem;
+        padding: 0.8rem 1rem; border-radius: 8px;
+        color: var(--text-muted); font-weight: 500; font-size: 0.95rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .nav-item:hover, .nav-item.active {
+        background-color: var(--bg-hover); color: white;
+    }
+    .nav-item.active { border-left: 3px solid var(--primary); background-color: var(--bg-hover); }
+
+    /* --- MAIN CONTENT --- */
+    .main-content { 
+        margin-left: 260px;
+        padding: 2rem; 
+        width: calc(100% - 260px);
+        box-sizing: border-box;
+    }
+    
+    .page-header { margin-bottom: 2rem; }
+    .page-header h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; margin-top: 0; }
+
+    /* --- TABLO TASARIMI --- */
+    .table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background: var(--bg-hover); padding: 1rem; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+    td { padding: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 0.95rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+
+    /* BADGE STİLLERİ */
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+    .badge-reading { background:rgba(14, 165, 233, 0.15); color:#0ea5e9; }
+    .badge-writing { background:rgba(168, 85, 247, 0.15); color:#a855f7; }
+    .badge-listening { background:rgba(236, 72, 153, 0.15); color:#ec4899; }
+    .badge-speaking { background:rgba(34, 197, 94, 0.15); color:#22c55e; }
+    .badge-general { background:rgba(148, 163, 184, 0.15); color:#94a3b8; }
+
+    .status-completed { color:var(--success); font-weight:500; }
+    .status-abandoned { color:var(--warning); font-weight:500; }
+    .status-expired { color:var(--danger); font-weight:500; }
+    
+    .score-high { color:var(--success); font-weight: 700; }
+    .score-med { color:var(--warning); font-weight: 700; }
+    .score-low { color:var(--danger); font-weight: 700; }
+
+    .btn-detail {
+        background-color: var(--primary); color: white;
+        padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+        transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-detail:hover { background-color: #4338ca; }
+  </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-icon">
+                <i data-lucide="brain-circuit" size="20"></i>
+            </div>
+            <h1>AI Assessment</h1>
+        </div>
+        
+        <nav class="nav-links">
+            <a href="dashboard.html" class="nav-item">
+                <i data-lucide="layout-dashboard" size="20"></i> Panelim
+            </a>
+            <a href="history.html" class="nav-item active">
+                <i data-lucide="history" size="20"></i> Geçmiş Sınavlar
+            </a>
+        </nav>
+
+        </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h2>Sınav Geçmişi</h2>
+            <p style="color:var(--text-muted);">Tamamladığın tüm sınavların detaylı listesi.</p>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Modül</th> 
+                        <th>Seviye</th>
+                        <th>Durum</th>
+                        <th>Puan</th>
+                        <th>Detay</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTable">
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">
+                            <i data-lucide="loader-2" class="animate-spin"></i> Yükleniyor...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+<script>
+    lucide.createIcons();
+
+    // Çıkış fonksiyonu (İhtiyaç olursa diye fonksiyon olarak kaldı ama butonu silindi)
+    function logout() {
+        if(!confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userId = localStorage.getItem('user_id');
+        if (!userId) { window.location.href = 'login.html'; return; }
+
+        try {
+            const res = await fetch(`http://127.0.0.1:8000/api/report/history/${userId}`);
+            if (!res.ok) throw new Error("Veri çekilemedi");
+
+            const data = await res.json();
+            const tbody = document.getElementById('historyTable');
+            tbody.innerHTML = ''; 
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem;">Henüz hiç sınav tamamlamadınız.</td></tr>';
+                return;
+            }
+
+            data.forEach(item => {
+                const dateObj = new Date(item.start_time);
+                const dateStr = dateObj.toLocaleDateString('tr-TR') + ' ' + dateObj.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+
+                // Modül ve Renk Ayarı
+                const skillRaw = (item.skill || "").toLowerCase();
+                let skillLabel = skillRaw ? skillRaw.toUpperCase() : "GENEL";
+                let badgeClass = 'badge-general';
+                let icon = 'hash';
+
+                if(skillRaw.includes('read')) { badgeClass = 'badge-reading'; icon = 'book-open'; skillLabel = 'READING'; }
+                else if(skillRaw.includes('writ')) { badgeClass = 'badge-writing'; icon = 'pen-tool'; skillLabel = 'WRITING'; }
+                else if(skillRaw.includes('listen')) { badgeClass = 'badge-listening'; icon = 'headphones'; skillLabel = 'LISTENING'; }
+                else if(skillRaw.includes('speak')) { badgeClass = 'badge-speaking'; icon = 'mic'; skillLabel = 'SPEAKING'; }
+
+                // Durum Ayarı
+                let statusHtml = `<span class="status-abandoned">Yarım Kaldı</span>`;
+                if(item.status === 'COMPLETED') statusHtml = `<span class="status-completed"><i data-lucide="check" style="width:14px; vertical-align:middle;"></i> Tamamlandı</span>`;
+                if(item.status === 'EXPIRED') statusHtml = `<span class="status-expired"><i data-lucide="clock" style="width:14px; vertical-align:middle;"></i> Süre Doldu</span>`;
+
+                // Puan Rengi
+                let scoreColor = 'score-low';
+                if(item.overall_score >= 70) scoreColor = 'score-high';
+                else if(item.overall_score >= 40) scoreColor = 'score-med';
+
+                const displayScore = item.status === 'COMPLETED' ? item.overall_score.toFixed(1) : '-';
+
+                // Buton Oluşturma
+                let actionBtn = `<span style="color:var(--text-muted); font-size:0.8rem;">-</span>`;
+                if (item.status === 'COMPLETED' || item.status === 'EXPIRED') {
+                    // ID ile Analysis sayfasına yönlendirme
+                    actionBtn = `<a href="analysis.html?id=${item.id}" class="btn-detail">
+                                    Analiz <i data-lucide="arrow-right" style="width:14px;"></i>
+                                 </a>`;
+                }
+
+                const row = `
+                    <tr>
+                        <td style="color:var(--text-muted); font-size:0.9rem;">${dateStr}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">
+                                <i data-lucide="${icon}" style="width:14px;"></i> ${skillLabel}
+                            </span>
+                        </td>
+                        <td><span style="font-weight:600;">${item.detected_level || '-'}</span></td>
+                        <td>${statusHtml}</td>
+                        <td><span class="${scoreColor}">${displayScore}</span></td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            lucide.createIcons(); 
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('historyTable').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Veriler yüklenirken hata oluştu.</td></tr>';
+        }
+    });
+</script>
+
+</body>
+</html>

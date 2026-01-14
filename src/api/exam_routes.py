@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, UploadFile 
-from sqlalchemy.orm import Session 
-from src.database import get_db 
+from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException
+from sqlalchemy.orm import Session
+from src.database import get_db
+from src.services.exam_service import ExamService
+from src.schemas.exam import AnswerCreate, ExamSubmit, ReportOut
+from typing import List
+from datetime import datetime
 
 router = APIRouter() 
 
@@ -11,7 +15,7 @@ def start_exam(skill: str, level: str = "A1", user_id: int = Query(...), db: Ses
     service = ExamService(db)
     session, questions = service.start_exam_session(user_id, skill, level)
     if not questions:
-    raise HTTPException(status_code=404, detail="Soru bulunamadı")
+     raise HTTPException(status_code=404, detail="Soru bulunamadı")
     
     remaining_seconds = 0
     if session.end_time:

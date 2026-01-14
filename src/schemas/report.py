@@ -1,13 +1,18 @@
 from pydantic import BaseModel
 
 class ErrorReportCreate(BaseModel):
-    pass
+    student_id: int
+    description: str
+    issue_type: str
 
 class ReportOut(BaseModel):
-    pass
+    overall_score: float
+    feedback: str
+    breakdown: Optional[Dict[str, float]] = {}
 
 class ThreatLogCreate(BaseModel):
-    pass
+    details: str
 
 class PolicyOut(BaseModel):
-    pass
+    policy_name: str
+    is_active: bool

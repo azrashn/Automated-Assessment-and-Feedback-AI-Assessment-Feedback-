@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>Kayıt Ol - AI Assessment</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+        // 2. Zaten Giriş Yapmışsa Dashboard'a Gönder
+        if (localStorage.getItem("user_id")) {
+             window.location.replace("/dashboard.html");
+        }
+
+        // 3. Sayfa Geri Tuşuyla Gelirse Yenile (Auth kontrolü tekrar çalışsın)
+        window.addEventListener("pageshow", function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+  
+  <style>
+    /* --- TASARIM DEĞİŞKENLERİ --- */
+    :root {
+        --bg-body: #020617;      /* Slate 950 */
+        --bg-card: #0f172a;      /* Slate 900 */
+        --bg-input: #1e293b;     /* Slate 800 */
+        --border-color: #334155; /* Slate 700 */
+        
+        --text-main: #f8fafc;    /* Slate 50 */
+        --text-muted: #94a3b8;   /* Slate 400 */
+        
+        --primary: #4f46e5;      /* Indigo 600 */
+        --primary-hover: #4338ca;/* Indigo 700 */
+        --accent: #0ea5e9;       /* Sky 500 */
+        --danger: #ef4444;       /* Red 500 */
+        
+        --header-h: 70px;
+        --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+    }
+
+    a { text-decoration: none; color: inherit; transition: 0.2s; }
+    button { cursor: pointer; border: none; font-family: inherit; background: none; }
+
+    /* --- HEADER --- */
+    header {
+        position: fixed; top: 0; left: 0; right: 0;
+        height: var(--header-h);
+        display: flex; align-items: center; padding: 0 2rem;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+    
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-icon {
+        width: 32px; height: 32px; 
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white; border-radius: 8px; 
+        display: flex; align-items: center; justify-content: center;
+    }
+    .brand h1 { font-size: 1.25rem; font-weight: 700; color: white; }
+
+    /* --- REGISTER CONTENT --- */
+    .page-wrapper {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 2rem; margin-top: var(--header-h);
+    }
+
+    .register-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 2.5rem;
+        width: 100%; max-width: 480px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative; overflow: hidden;
+    }
+    
+    .register-card::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    .card-header { text-align: center; margin-bottom: 2rem; }
+    .card-header h2 { font-size: 1.75rem; font-weight: 700; color: white; margin-bottom: 0.5rem; }
+    .card-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+    
+    .input-wrapper { position: relative; }
+    .input-icon { 
+        position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); 
+        color: var(--text-muted); transition: 0.2s;
+    }
+    
+    .form-input {
+        width: 100%;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        border-radius: 0.5rem;
+        color: white; outline: none; transition: 0.2s;
+        font-size: 0.95rem;
+    }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+    .form-input:focus + .input-icon { color: var(--primary); }
+
+    /* Validasyon Hata Mesajı (Input Altında) */
+    .error-text {
+        color: var(--danger); font-size: 0.8rem; margin-top: 0.4rem;
+        display: none; align-items: center; gap: 0.4rem;
+    }
+
+    .toggle-pass {
+        position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+        color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
+    }
+    .toggle-pass:hover { color: white; }
+
+    .btn-submit {
+        width: 100%;
+        background-color: var(--primary); color: white;
+        padding: 0.8rem; border-radius: 0.5rem;
+        font-weight: 600; font-size: 1rem; transition: 0.2s;
+        margin-top: 1rem;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-submit:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; background-color: var(--bg-input); }
+
+    .card-footer { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
+    .link-accent { color: var(--accent); font-weight: 600; }
+    .link-accent:hover { text-decoration: underline; color: var(--primary); }
+
+    /* Genel Alert Kutusu */
+    .alert-box { 
+        padding: 12px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1.5rem; 
+        display: none; align-items: center; gap: 0.75rem; text-align: left;
+    }
+    .alert-error { background: rgba(239, 68, 68, 0.1); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .alert-success { background: rgba(34, 197, 94, 0.1); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.2); }
+
+    footer { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem; }
+
+    @media(max-width:600px){ .register-card{padding: 1.5rem;} }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="brand">
+        <div class="logo-icon"><i data-lucide="brain-circuit" size="20"></i></div>
+        <h1>AI Assessment</h1>
+    </a>
+  </header>
+
+  <div class="page-wrapper">
+    <div class="register-card">
+      <div class="card-header">
+        <h2>Hesap Oluştur</h2>
+        <p>Hemen katıl, seviyeni öğren ve gelişimini takip et.</p>
+      </div>
+
+      <div id="generalAlert" class="alert-box"></div>
+
+      <form id="registerForm" novalidate>
+        
+        <div class="form-group">
+          <label class="form-label" for="fullname">Ad Soyad</label>
+          <div class="input-wrapper">
+            <i data-lucide="user" class="input-icon" size="18"></i>
+            <input type="text" id="fullname" class="form-input" placeholder="Adınız Soyadınız" required>
+          </div>
+          <div id="nameError" class="error-text"><i data-lucide="alert-circle" size="14"></i> İsim alanı zorunludur.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">E-posta Adresi</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail" class="input-icon" size="18"></i>
+            <input type="email" id="email" class="form-input" placeholder="ogrenci@okul.edu.tr" required>
+          </div>
+          <div id="emailError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Geçerli bir e-posta girin.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Şifre</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="input-icon" size="18"></i>
+            <input type="password" id="password" class="form-input" placeholder="8-32 karakter arası" minlength="8" maxlength="32" required>
+            <button type="button" class="toggle-pass" id="togglePass">Göster</button>
+          </div>
+          <div id="passwordError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Şifre 8-32 karakter arasında olmalıdır.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="passwordConfirm">Şifre (Tekrar)</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock-keyhole" class="input-icon" size="18"></i>
+            <input type="password" id="passwordConfirm" class="form-input" placeholder="Şifrenizi doğrulayın" required>
+          </div>
+          <div id="passwordConfirmError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Şifreler eşleşmiyor.</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <span>Kayıt Ol</span>
+            <i data-lucide="user-plus" size="18"></i>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        Zaten hesabın var mı? <a href="/login.html" class="link-accent">Giriş Yap</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 AI Assessment System. FR-1 User Registration.</p>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById("registerForm");
+    const nameEl = document.getElementById("fullname");
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const passConfEl = document.getElementById("passwordConfirm");
+    const submitBtn = document.getElementById("submitBtn");
+    const generalAlert = document.getElementById("generalAlert");
+    
+    document.getElementById("togglePass").addEventListener("click", function(){
+      const type = passEl.type === "password" ? "text" : "password";
+      passEl.type = type;
+      passConfEl.type = type;
+      this.textContent = type === "password" ? "Göster" : "Gizle";
+    });
+
+    function showError(elementId, show) {
+        const el = document.getElementById(elementId);
+        el.style.display = show ? 'flex' : 'none';
+        lucide.createIcons();
+    }
+
+    function validateEmail(email) {
+      return /\S+@\S+\.\S+/.test(email);
+    }
+
+    form.addEventListener("submit", async function(e){
+      e.preventDefault();
+      
+      document.querySelectorAll('.error-text').forEach(el => el.style.display = 'none');
+      generalAlert.style.display = 'none';
+      let isValid = true;
+
+      if (!nameEl.value.trim()) { showError('nameError', true); isValid = false; }
+      if (!validateEmail(emailEl.value)) { showError('emailError', true); isValid = false; }
+      if (passEl.value.length < 8 || passEl.value.length > 32) { showError('passwordError', true); isValid = false; }
+      if (passEl.value !== passConfEl.value) { showError('passwordConfirmError', true); isValid = false; }
+
+      if (!isValid) return;
+
+      submitBtn.disabled = true;
+      submitBtn.querySelector('span').textContent = "Kaydediliyor...";
+
+      const formData = {
+          fullname: nameEl.value,
+          email: emailEl.value,
+          password: passEl.value
+      };
+
+      try {
+          // YENİ ENDPOINT: /api/auth/register
+          const response = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(formData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Kayıt başarısız.");
+          }
+
+          generalAlert.className = "alert-box alert-success";
+          generalAlert.innerHTML = '<i data-lucide="check-circle" size="18"></i> Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...';
+          generalAlert.style.display = 'flex';
+          lucide.createIcons();
+          
+          setTimeout(() => {
+              window.location.href = '/login.html';
+          }, 2000);
+
+      } catch (error) {
+          generalAlert.className = "alert-box alert-error";
+          generalAlert.innerHTML = `<i data-lucide="alert-triangle" size="18"></i> ${error.message || 'Sunucu hatası oluştu.'}`;
+          generalAlert.style.display = 'flex';
+          lucide.createIcons();
+          
+          submitBtn.disabled = false;
+          submitBtn.querySelector('span').textContent = "Kayıt Ol";
+      }
+    });
+  </script>
+
+</body>
+</html>

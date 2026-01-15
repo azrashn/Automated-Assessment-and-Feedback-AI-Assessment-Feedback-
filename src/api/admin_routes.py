@@ -10,15 +10,19 @@ from src.schemas.report import ThreatLogCreate
 
 router = APIRouter()
 
+# =============================================================================
+# 1. QUESTION MANAGEMENT
+# =============================================================================
+
 @router.post("/question")
 def add_question(q: QuestionCreate, db: Session = Depends(get_db)):
-    """FR-15: Adds new questions to the question pool."""
+    """FR-15: Adds a new question to the question pool."""
     service = AdminService(db)
     return service.manage_question_pool(q)
 
 @router.get("/questions")
 def list_questions(db: Session = Depends(get_db)):
-    """Lists all the questions."""
+    """Lists all questions."""
     service = AdminService(db)
     questions = service.get_all_questions()
     return [
@@ -34,12 +38,17 @@ def list_questions(db: Session = Depends(get_db)):
 
 @router.delete("/question/{question_id}")
 def delete_question(question_id: int, db: Session = Depends(get_db)):
-    """FR-15: Deletes the question."""
+    """FR-15: Deletes a question."""
     service = AdminService(db)
     success = service.remove_question(question_id)
     if not success:
-        raise HTTPException(status_code=404, detail="No questions found")
-    return {"status": "deleted", "msg": "The question has been deleted."}
+        raise HTTPException(status_code=404, detail="Question not found")
+    return {"status": "deleted", "msg": "Question deleted."}
+
+
+# =============================================================================
+# 2. USER MANAGEMENT (FR-18 EXISTING)
+# =============================================================================
 
 @router.get("/users")
 def list_users(db: Session = Depends(get_db)):
@@ -60,7 +69,7 @@ def list_users(db: Session = Depends(get_db)):
 
 @router.post("/user/{user_id}/toggle-status")
 def toggle_user_status(user_id: int, db: Session = Depends(get_db)):
-    """FR-18: Freezes or reactivates the user account."""
+    """FR-18: Freezes or activates the user account."""
     service = AdminService(db)
     new_status = service.toggle_user_status(user_id)
     
@@ -77,8 +86,12 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     success = service.remove_user(user_id)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"status": "deleted", "msg": f"User {user_id} has been deleted."}
+    return {"status": "deleted", "msg": f"User {user_id} deleted."}
 
+
+# =============================================================================
+# 3. GRADE MANAGEMENT & MANUAL INTERVENTION (FR-17)
+# =============================================================================
 
 @router.get("/sessions")
 def list_exam_sessions(db: Session = Depends(get_db)):
@@ -98,12 +111,19 @@ def list_exam_sessions(db: Session = Depends(get_db)):
         for s, username in data
     ]
 
+
+
 @router.post("/score-override")
 def override_score(data: ScoreOverride, db: Session = Depends(get_db)):
-    """FR-17: Allows the administrator to manually change a student's score."""
+    """FR-17: Allows the admin to manually override a student's score."""
     service = AdminService(db)
     service.override_score(data.session_id, data.new_score) 
     return {"status": "updated", "msg": "Score successfully updated"}
+
+
+# =============================================================================
+# 4. SECURITY AND LOGS (Security)
+# =============================================================================
 
 @router.get("/policies", response_model=List[str]) 
 def get_policies(db: Session = Depends(get_db)):
@@ -119,13 +139,17 @@ def log_threat(log: ThreatLogCreate, db: Session = Depends(get_db)):
     return {"status": "logged"}
 
 
+# =============================================================================
+# 5. TECHNICAL SUPPORT AND REPORTS (FR-20: NEW SECTION)
+# =============================================================================
+
 @router.get("/reports")
 def list_reports(db: Session = Depends(get_db)):
-    """FS-20: Lists all bug reports."""
+    """FR-20: Lists all error reports."""
     service = AdminService(db)
     reports = service.get_all_reports()
     
-    # Frontend tablosu için formatlama
+    # Formatting for frontend table
     return [
         {
             "report_id": r.report_id,
@@ -139,9 +163,9 @@ def list_reports(db: Session = Depends(get_db)):
 
 @router.delete("/report/{report_id}")
 def resolve_report(report_id: int, db: Session = Depends(get_db)):
-    """FR-20: Marks (deletes) the problem as resolved."""
+    """FR-20: Marks the issue as resolved (deletes it)."""
     service = AdminService(db)
     success = service.resolve_report(report_id)
     if not success:
         raise HTTPException(status_code=404, detail="Report not found")
-    return {"status": "resolved", "msg": "The problem has been solved."}
+    return {"status": "resolved", "msg": "Issue resolved."}

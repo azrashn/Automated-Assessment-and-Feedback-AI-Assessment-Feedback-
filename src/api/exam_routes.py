@@ -20,7 +20,7 @@ def start_exam(
     session, questions = service.start_exam_session(user_id, skill, level)
     
     if not questions:
-        raise HTTPException(status_code=404, detail="Soru bulunamadı")
+        raise HTTPException(status_code=404, detail="No question found")
     
     remaining_seconds = 0
     if session.end_time:
@@ -66,3 +66,4 @@ def finalize_exam(payload: ExamSubmit, db: Session = Depends(get_db)):
             )
             
     return service.finalize_exam(payload.session_id, skill_name=payload.skill)
+

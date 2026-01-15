@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>Öğrenci Paneli - AI Assessment</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    function checkSession() {
+        if (!localStorage.getItem("user_id")) {
+             window.location.replace("/login.html");
+        }
+    }
+    checkSession(); // Sayfa açılır açılmaz kontrol et
+
+    // --- GERİ TUŞU KİLİDİ ---
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+        history.go(1);
+    };
+    window.addEventListener("pageshow", function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+  </script>
+  
+  <style>
+    /* --- TASARIM DEĞİŞKENLERİ --- */
+    :root {
+        --bg-body: #020617;
+        --bg-card: #0f172a;
+        --bg-hover: #1e293b;
+        --border-color: #334155;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --accent: #0ea5e9;
+        --success: #22c55e;
+        --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+    }
+
+    a { text-decoration: none; color: inherit; transition: 0.2s; }
+    button { cursor: pointer; border: none; font-family: inherit; background: none; }
+
+    /* --- SIDEBAR & LAYOUT --- */
+    .layout { display: flex; min-height: 100vh; }
+    
+    .sidebar {
+        width: 260px; background-color: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        display: flex; flex-direction: column;
+        padding: 1.5rem; position: fixed; top: 0; bottom: 0; z-index: 50;
+    }
+
+    .brand { 
+        display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2.5rem; 
+        padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);
+    }
+    .logo-icon {
+        width: 32px; height: 32px; 
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white; border-radius: 8px; 
+        display: flex; align-items: center; justify-content: center;
+    }
+    .brand h1 { font-size: 1.2rem; font-weight: 700; color: white; }
+
+    .nav-links { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .nav-item {
+        display: flex; align-items: center; gap: 0.75rem;
+        padding: 0.8rem 1rem; border-radius: 8px;
+        color: var(--text-muted); font-weight: 500; font-size: 0.95rem;
+    }
+    .nav-item:hover, .nav-item.active {
+        background-color: var(--bg-hover); color: white;
+    }
+    .nav-item.active { border-left: 3px solid var(--primary); background-color: var(--bg-hover); }
+
+    /* --- SIDEBAR PROFILE (GÜNCELLENDİ: TIKLANABİLİR YAPILDI) --- */
+    .user-profile {
+        margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);
+        display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;
+    }
+    
+    /* Profil Link Alanı (Resim + İsim) */
+    .profile-link-area {
+        display: flex; align-items: center; gap: 0.8rem;
+        text-decoration: none; color: inherit; flex: 1;
+        cursor: pointer; padding: 5px; border-radius: 8px; transition: 0.2s;
+    }
+    .profile-link-area:hover { background-color: var(--bg-hover); }
+
+    .avatar {
+        width: 40px; height: 40px; border-radius: 50%; background: var(--bg-hover);
+        color: var(--primary); display: flex; align-items: center; justify-content: center;
+        font-weight: 700; border: 1px solid var(--border-color);
+    }
+
+    /* --- MAIN CONTENT --- */
+    .main-content {
+        flex: 1; margin-left: 260px; padding: 2rem;
+    }
+
+    /* HEADER SECTION (GÜNCELLENDİ: SAĞ ÜST PROFİL EKLENDİ) */
+    .header-section {
+        display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;
+    }
+    .welcome-text h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .welcome-text p { color: var(--text-muted); }
+
+    /* HEADER PROFILE BUTTON */
+    .header-profile-btn {
+        display: flex; align-items: center; gap: 12px;
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        padding: 8px 16px; border-radius: 30px; cursor: pointer; text-decoration: none;
+        transition: 0.2s; color: var(--text-main);
+    }
+    .header-profile-btn:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .header-profile-btn span { font-weight: 600; font-size: 0.95rem; }
+    .header-profile-btn .avatar { width: 32px; height: 32px; font-size: 0.8rem; border-color: transparent; }
+
+    /* STATS GRID */
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem; margin-bottom: 3rem;
+    }
+    .stat-card {
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        padding: 1.5rem; border-radius: var(--radius);
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+    
+    .stat-value { font-size: 2rem; font-weight: 700; color: white; margin: 0.5rem 0; }
+    .stat-label { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* MODULES GRID */
+    .modules-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .module-card {
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: var(--radius); overflow: hidden; transition: 0.3s;
+        display: flex; flex-direction: column;
+    }
+    .module-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+    
+    .module-card.completed { border-color: var(--success); opacity: 0.8; }
+    .module-card.completed .module-icon { color: var(--success); background: rgba(34, 197, 94, 0.1); }
+
+    .module-header { padding: 1.5rem; background: var(--bg-hover); display: flex; align-items: center; gap: 1rem; }
+    .module-icon { 
+        width: 48px; height: 48px; border-radius: 10px; background: rgba(79, 70, 229, 0.1); 
+        color: var(--primary); display: flex; align-items: center; justify-content: center;
+    }
+    .module-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+    .module-body p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem; flex: 1; }
+    
+    .btn-start {
+        width: 100%; padding: 0.8rem; border-radius: 8px;
+        background-color: var(--bg-body); border: 1px solid var(--border-color);
+        color: white; font-weight: 600; cursor: pointer; transition: 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-start:hover { background-color: var(--primary); border-color: var(--primary); }
+    .btn-start:disabled {
+        background-color: var(--bg-hover); color: var(--success);
+        border-color: var(--success); cursor: not-allowed; opacity: 1;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .sidebar { display: none; }
+        .main-content { margin-left: 0; }
+        .header-section { flex-direction: column-reverse; gap: 1rem; align-items: stretch; }
+        .header-profile-btn { align-self: flex-end; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-icon"><i data-lucide="brain-circuit"></i></div>
+            <h1>AI Assessment</h1>
+        </div>
+        
+        <nav class="nav-links">
+            <a href="/dashboard.html" class="nav-item active">
+                <i data-lucide="layout-dashboard" size="20"></i> Panelim
+            </a>
+            <a href="/history.html" class="nav-item">
+                <i data-lucide="history" size="20"></i> Geçmiş Sınavlar
+            </a>
+        </nav>
+
+        <div class="user-profile">
+            <a href="/profile.html" class="profile-link-area" title="Profilim">
+                <div class="avatar" id="sidebarAvatar">U</div>
+                <div style="flex:1; overflow:hidden;">
+                    <h4 style="font-size:0.9rem; white-space:nowrap;" id="sidebarName">Yükleniyor...</h4>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">Öğrenci</span>
+                </div>
+            </a>
+            <button onclick="logout()" title="Çıkış Yap">
+                <i data-lucide="log-out" size="18" style="color:#ef4444;"></i>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header-section">
+            <div class="welcome-text">
+                <h2 id="welcomeMsg">Hoşgeldin! 👋</h2>
+                <p>Bugün hangi becerini geliştirmek istersin?</p>
+            </div>
+
+            <a href="/profile.html" class="header-profile-btn">
+                <span id="headerName">Kullanıcı</span>
+                <div class="avatar" id="headerAvatar" style="background:var(--primary); color:white;">U</div>
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="stat-label">Genel Seviye</span>
+                    <i data-lucide="award" style="color:var(--accent);"></i>
+                </div>
+                <div class="stat-value" id="statLevel">...</div>
+            </div>
+
+            <div class="stat-card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="stat-label">Tamamlanan</span>
+                    <i data-lucide="check-circle" style="color:var(--primary);"></i>
+                </div>
+                <div class="stat-value" id="statCompleted">0</div>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Sınav Modülü</span>
+            </div>
+
+            <div class="stat-card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="stat-label">Ortalama Puan</span>
+                    <i data-lucide="trending-up" style="color:var(--success);"></i>
+                </div>
+                <div class="stat-value" id="statScore">0.0</div>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h3 style="font-size:1.4rem; margin:0;">Sınav Modülleri</h3>
+            
+            <button id="btn-reset-cycle" onclick="resetCycle()" 
+                style="display:none; background:var(--primary); color:white; padding:0.6rem 1.2rem; border-radius:8px; font-weight:600; cursor:pointer; align-items:center; gap:8px; font-size:0.9rem;">
+                <i data-lucide="refresh-cw" style="width:16px;"></i> Yeni Sınav Başlat
+            </button>
+        </div>
+        
+        <div class="modules-grid">
+            <div class="module-card" id="card-reading">
+                <div class="module-header">
+                    <div class="module-icon"><i data-lucide="book-open"></i></div>
+                    <div>
+                        <h4 style="font-weight:600;">Okuma (Reading)</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Anlama ve Kelime</span>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p>Metinleri okuyup anlama becerini test et. Farklı zorluk seviyelerinde paragraflar.</p>
+                    <button id="btn-reading" class="btn-start" onclick="startExam('reading')">Başla</button>
+                </div>
+            </div>
+
+            <div class="module-card" id="card-writing">
+                <div class="module-header">
+                    <div class="module-icon"><i data-lucide="pen-tool"></i></div>
+                    <div>
+                        <h4 style="font-weight:600;">Yazma (Writing)</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Gramer ve Kompozisyon</span>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p>Verilen konu hakkında kompozisyon yaz. Gramer ve kelime kullanımı analiz edilir.</p>
+                    <button id="btn-writing" class="btn-start" onclick="startExam('writing')">Başla</button>
+                </div>
+            </div>
+
+            <div class="module-card" id="card-listening">
+                <div class="module-header">
+                    <div class="module-icon"><i data-lucide="headphones"></i></div>
+                    <div>
+                        <h4 style="font-weight:600;">Dinleme (Listening)</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Duyduğunu Anlama</span>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p>Ses kayıtlarını dinle ve soruları cevapla. Aksan ve tonlama analizi.</p>
+                    <button id="btn-listening" class="btn-start" onclick="startExam('listening')">Başla</button>
+                </div>
+            </div>
+
+            <div class="module-card" id="card-speaking">
+                <div class="module-header">
+                    <div class="module-icon"><i data-lucide="mic"></i></div>
+                    <div>
+                        <h4 style="font-weight:600;">Konuşma (Speaking)</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Telaffuz ve Akıcılık</span>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <p>Sorulara sesli yanıt ver. Sesin kaydedilir ve AI tarafından puanlanır.</p>
+                    <button id="btn-speaking" class="btn-start" onclick="startExam('speaking')">Başla</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    // VERİLERİ ÇEK VE GÜNCELLE
+    document.addEventListener('DOMContentLoaded', async () => {
+        const userId = localStorage.getItem('user_id');
+        if (!userId) { window.location.href = '/login.html'; return; }
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/user/profile/${userId}`);
+            
+            if (!response.ok) {
+                console.error("API Hatası:", response.status);
+                if(response.status === 401 || response.status === 404) logout(false);
+                return;
+            }
+
+            const data = await response.json();
+            
+            // Baş harf hesapla (Avatar için)
+            const initial = data.username ? data.username.charAt(0).toUpperCase() : "U";
+
+            // 1. HEADER VE SIDEBAR GÜNCELLEME
+            document.getElementById('welcomeMsg').textContent = `Hoşgeldin, ${data.username}! 👋`;
+            
+            // Sidebar
+            document.getElementById('sidebarName').textContent = data.username;
+            document.getElementById('sidebarAvatar').textContent = initial;
+
+            // Header (Sağ Üst)
+            document.getElementById('headerName').textContent = data.username;
+            document.getElementById('headerAvatar').textContent = initial;
+
+            // 2. İSTATİSTİKLER
+            document.getElementById('statLevel').textContent = data.overall_level;
+            document.getElementById('statCompleted').textContent = data.completed_exams;
+            document.getElementById('statScore').textContent = data.average_score;
+
+            // 3. ADMIN KONTROLÜ
+            if (data.is_admin) {
+                const navLinks = document.querySelector('.nav-links');
+                if (!document.getElementById('adminLink')) {
+                    const adminLink = document.createElement('a');
+                    adminLink.id = 'adminLink';
+                    adminLink.href = "/admin.html";
+                    adminLink.className = "nav-item";
+                    adminLink.style.color = "#ef4444"; 
+                    adminLink.style.marginTop = "auto";
+                    adminLink.innerHTML = '<i data-lucide="shield-alert" size="20"></i> Yönetici Paneli';
+                    navLinks.appendChild(adminLink);
+                    lucide.createIcons();
+                }
+            }
+
+            // 4. MODÜL KİLİTLEME MANTIĞI
+            const completed = data.completed_skills || [];
+            completed.forEach(skill => {
+                const btn = document.getElementById(`btn-${skill}`);
+                const card = document.getElementById(`card-${skill}`);
+                
+                if (btn && card) {
+                    btn.disabled = true;
+                    btn.innerHTML = 'Tamamlandı <i data-lucide="check" style="width:16px;"></i>';
+                    card.classList.add('completed');
+                }
+            });
+
+            // 5. DÖNGÜ SIFIRLAMA BUTONU
+            if (completed.length === 4) {
+                const resetBtn = document.getElementById('btn-reset-cycle');
+                if(resetBtn) resetBtn.style.display = "flex";
+            }
+
+        } catch (error) {
+            console.error("Dashboard verisi yüklenemedi:", error);
+        }
+    });
+
+    // Sınav Başlatma
+    function startExam(skill) {
+        const currentLevel = document.getElementById('statLevel').textContent || 'A1';
+        window.location.href = `exam.html?cat=${skill}&lvl=${currentLevel}`;
+    }
+
+    // Dönem Sıfırlama
+    async function resetCycle() {
+        if(!confirm("Tebrikler! 4 modülü de tamamladın.\n\nYeni bir değerlendirme döngüsü başlatmak istiyor musun?")) return;
+
+        try {
+            const userId = localStorage.getItem('user_id');
+            const res = await fetch(`http://127.0.0.1:8000/api/user/reset-cycle?user_id=${userId}`, {
+                method: 'POST'
+            });
+
+            if(res.ok) {
+                alert("Yeni dönem başlatıldı! Başarılar.");
+                window.location.reload(); 
+            } else {
+                alert("Bir hata oluştu.");
+            }
+        } catch(err) {
+            alert("Sunucuya ulaşılamadı.");
+        }
+    }
+
+    // Güvenli Çıkış
+    function logout(ask = true) {
+        if (ask && !confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
+        localStorage.clear();
+        window.location.replace('/login.html');
+    }
+</script>
+
+</body>
+</html>

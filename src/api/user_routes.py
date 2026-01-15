@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from src.database import get_db
 
+# Modeller
+# DÜZELTME 1: User modelini de import ediyoruz
 from src.models.user import User, Student, LevelRecord
 from src.models.exam import ExamSession 
 
@@ -13,11 +15,14 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     Dashboard için güncel verileri çeker.
     Hem Admin hem Öğrenci için çalışır.
     """
+    # 1. DÜZELTME: Doğrudan Student değil, User sorguluyoruz (Polymorphic hata almamak için)
     user = db.query(User).filter(User.user_id == user_id).first()
     
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
 
+    # 2. DÜZELTME: Admin Kontrolü
+    # Eğer kullanıcı Admin ise istatistik hesaplamaya gerek yok, admin verisi dön.
     if user.role in ["admin", "administrator"]:
         return {
             "username": user.username,
@@ -25,19 +30,25 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
             "overall_level": "Yönetici",
             "completed_exams": 0,
             "average_score": 0.0,
-            "completed_skills": [],
-            "is_admin": True
+            "completed_skills": [], # Adminin sınavı olmaz
+            "is_admin": True # Frontend admin panel butonu gösterebilir
         }
 
+    # 3. ÖĞRENCİ İŞLEMLERİ (Mevcut kodun korunduğu yer)
+    # User nesnesi zaten elimizde, ama ilişkiler için Student tablosu üzerinden gitmek gerekebilir
+    # veya user_id ile direkt tablolardan çekebiliriz.
     
+    # LevelRecord Tablosundan EN GÜNCEL Seviyeyi Çek
     record = db.query(LevelRecord).filter(LevelRecord.student_id == user_id).first()
     
+    # --- YENİ EKLENEN KISIM: Tamamlanan Modülleri Listele ---
     completed_skills = []
     current_level = "A1"
     
     if record:
         current_level = record.overall_level or "A1"
         
+        # Veritabanında notu girilmiş (None olmayan) yetenekleri listeye ekle
         if record.reading_level: completed_skills.append("reading")
         if record.writing_level: completed_skills.append("writing")
         if record.listening_level: completed_skills.append("listening")

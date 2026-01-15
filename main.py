@@ -9,21 +9,21 @@ from fastapi import Request
 from src.database import engine, Base
 from src.api import auth_routes, exam_routes, admin_routes, report_routes, user_routes
 
-# Veritabanı Tablolarını Oluştur
+# Create Database Tables
 Base.metadata.create_all(bind=engine)
 
-# Uygulamayı Başlat
+# Initialize FastAPI Application
 app = FastAPI(title="AI Assessment System")
 
-# Statik Dosya Ayarları
+# Configure Static Files
 os.makedirs("src/static/uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
-# TEMPLATE AYARI (Sihirli Kısım Burası)
-# Bu satır sayesinde "analysis.html" dediğinde otomatik olarak "src/templates" içine bakıyor.
+# Template Configuration
+# This allows automatic lookup of templates in the "src/templates" directory
 templates = Jinja2Templates(directory="src/templates")
 
-# CORS Ayarları
+# Configure CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -32,14 +32,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API Router'larını Kaydet
+# Register API Routes
 app.include_router(auth_routes.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(exam_routes.router, prefix="/api/exam", tags=["Exam"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(report_routes.router, prefix="/api/report", tags=["Report"])
 app.include_router(user_routes.router)
 
-# --- HTML SAYFALARI (Hepsi Standart Oldu) ---
+# HTML Page Routes
 
 @app.get("/")
 def read_root(request: Request):
@@ -69,7 +69,7 @@ def history_page(request: Request):
 def exam_page(request: Request):
     return templates.TemplateResponse("exam.html", {"request": request})
 
-# DÜZELTİLEN KISIM: Artık temiz ve kısa
+# Analysis Page Route
 @app.get("/analysis.html")
 def analysis_page(request: Request):
     return templates.TemplateResponse("analysis.html", {"request": request})
@@ -81,6 +81,6 @@ def profile_page(request: Request):
 @app.get("/admin.html")
 def admin_page(request: Request):
     """
-    Admin panelini sunar.
+    Serves the admin panel page.
     """
     return templates.TemplateResponse("admin.html", {"request": request})

@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Öğrenci Paneli - AI Assessment</title>
+  <title>Student Dashboard - AI Assessment</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -207,22 +207,22 @@
         
         <nav class="nav-links">
             <a href="/dashboard.html" class="nav-item active">
-                <i data-lucide="layout-dashboard" size="20"></i> Panelim
+                <i data-lucide="layout-dashboard" size="20"></i> My Dashboard
             </a>
             <a href="/history.html" class="nav-item">
-                <i data-lucide="history" size="20"></i> Geçmiş Sınavlar
+                <i data-lucide="history" size="20"></i> Exam History
             </a>
         </nav>
 
         <div class="user-profile">
-            <a href="/profile.html" class="profile-link-area" title="Profilim">
+            <a href="/profile.html" class="profile-link-area" title="My Profile">
                 <div class="avatar" id="sidebarAvatar">U</div>
                 <div style="flex:1; overflow:hidden;">
-                    <h4 style="font-size:0.9rem; white-space:nowrap;" id="sidebarName">Yükleniyor...</h4>
-                    <span style="font-size:0.8rem; color:var(--text-muted);">Öğrenci</span>
+                    <h4 style="font-size:0.9rem; white-space:nowrap;" id="sidebarName">Loading...</h4>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">Student</span>
                 </div>
             </a>
-            <button onclick="logout()" title="Çıkış Yap">
+            <button onclick="logout()" title="Logout">
                 <i data-lucide="log-out" size="18" style="color:#ef4444;"></i>
             </button>
         </div>
@@ -231,8 +231,8 @@
     <main class="main-content">
         <div class="header-section">
             <div class="welcome-text">
-                <h2 id="welcomeMsg">Hoşgeldin! 👋</h2>
-                <p>Bugün hangi becerini geliştirmek istersin?</p>
+                <h2 id="welcomeMsg">Welcome! 👋</h2>
+                <p>What skill would you like to improve today?</p>
             </div>
 
             <a href="/profile.html" class="header-profile-btn">
@@ -244,7 +244,7 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div style="display:flex; justify-content:space-between;">
-                    <span class="stat-label">Genel Seviye</span>
+                    <span class="stat-label">Overall Level</span>
                     <i data-lucide="award" style="color:var(--accent);"></i>
                 </div>
                 <div class="stat-value" id="statLevel">...</div>
@@ -252,16 +252,16 @@
 
             <div class="stat-card">
                 <div style="display:flex; justify-content:space-between;">
-                    <span class="stat-label">Tamamlanan</span>
+                    <span class="stat-label">Completed</span>
                     <i data-lucide="check-circle" style="color:var(--primary);"></i>
                 </div>
                 <div class="stat-value" id="statCompleted">0</div>
-                <span style="font-size:0.8rem; color:var(--text-muted);">Sınav Modülü</span>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Exam Modules</span>
             </div>
 
             <div class="stat-card">
                 <div style="display:flex; justify-content:space-between;">
-                    <span class="stat-label">Ortalama Puan</span>
+                    <span class="stat-label">Average Score</span>
                     <i data-lucide="trending-up" style="color:var(--success);"></i>
                 </div>
                 <div class="stat-value" id="statScore">0.0</div>
@@ -269,11 +269,11 @@
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-            <h3 style="font-size:1.4rem; margin:0;">Sınav Modülleri</h3>
+            <h3 style="font-size:1.4rem; margin:0;">Exam Modules</h3>
             
             <button id="btn-reset-cycle" onclick="resetCycle()" 
                 style="display:none; background:var(--primary); color:white; padding:0.6rem 1.2rem; border-radius:8px; font-weight:600; cursor:pointer; align-items:center; gap:8px; font-size:0.9rem;">
-                <i data-lucide="refresh-cw" style="width:16px;"></i> Yeni Sınav Başlat
+                <i data-lucide="refresh-cw" style="width:16px;"></i> Start New Cycle
             </button>
         </div>
         
@@ -282,13 +282,13 @@
                 <div class="module-header">
                     <div class="module-icon"><i data-lucide="book-open"></i></div>
                     <div>
-                        <h4 style="font-weight:600;">Okuma (Reading)</h4>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Anlama ve Kelime</span>
+                        <h4 style="font-weight:600;">Reading</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Comprehension and Vocabulary</span>
                     </div>
                 </div>
                 <div class="module-body">
-                    <p>Metinleri okuyup anlama becerini test et. Farklı zorluk seviyelerinde paragraflar.</p>
-                    <button id="btn-reading" class="btn-start" onclick="startExam('reading')">Başla</button>
+                    <p>Test your reading comprehension skills. Paragraphs at different difficulty levels.</p>
+                    <button id="btn-reading" class="btn-start" onclick="startExam('reading')">Start</button>
                 </div>
             </div>
 
@@ -296,13 +296,13 @@
                 <div class="module-header">
                     <div class="module-icon"><i data-lucide="pen-tool"></i></div>
                     <div>
-                        <h4 style="font-weight:600;">Yazma (Writing)</h4>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Gramer ve Kompozisyon</span>
+                        <h4 style="font-weight:600;">Writing</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Grammar and Composition</span>
                     </div>
                 </div>
                 <div class="module-body">
-                    <p>Verilen konu hakkında kompozisyon yaz. Gramer ve kelime kullanımı analiz edilir.</p>
-                    <button id="btn-writing" class="btn-start" onclick="startExam('writing')">Başla</button>
+                    <p>Write a composition on the given topic. Grammar and vocabulary usage are analyzed.</p>
+                    <button id="btn-writing" class="btn-start" onclick="startExam('writing')">Start</button>
                 </div>
             </div>
 
@@ -310,13 +310,13 @@
                 <div class="module-header">
                     <div class="module-icon"><i data-lucide="headphones"></i></div>
                     <div>
-                        <h4 style="font-weight:600;">Dinleme (Listening)</h4>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Duyduğunu Anlama</span>
+                        <h4 style="font-weight:600;">Listening</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Comprehension</span>
                     </div>
                 </div>
                 <div class="module-body">
-                    <p>Ses kayıtlarını dinle ve soruları cevapla. Aksan ve tonlama analizi.</p>
-                    <button id="btn-listening" class="btn-start" onclick="startExam('listening')">Başla</button>
+                    <p>Listen to audio recordings and answer questions. Accent and intonation analysis.</p>
+                    <button id="btn-listening" class="btn-start" onclick="startExam('listening')">Start</button>
                 </div>
             </div>
 
@@ -324,13 +324,13 @@
                 <div class="module-header">
                     <div class="module-icon"><i data-lucide="mic"></i></div>
                     <div>
-                        <h4 style="font-weight:600;">Konuşma (Speaking)</h4>
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Telaffuz ve Akıcılık</span>
+                        <h4 style="font-weight:600;">Speaking</h4>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">Pronunciation and Fluency</span>
                     </div>
                 </div>
                 <div class="module-body">
-                    <p>Sorulara sesli yanıt ver. Sesin kaydedilir ve AI tarafından puanlanır.</p>
-                    <button id="btn-speaking" class="btn-start" onclick="startExam('speaking')">Başla</button>
+                    <p>Answer questions verbally. Your voice is recorded and scored by AI.</p>
+                    <button id="btn-speaking" class="btn-start" onclick="startExam('speaking')">Start</button>
                 </div>
             </div>
         </div>
@@ -360,7 +360,7 @@
             const initial = data.username ? data.username.charAt(0).toUpperCase() : "U";
 
             // 1. HEADER VE SIDEBAR GÜNCELLEME
-            document.getElementById('welcomeMsg').textContent = `Hoşgeldin, ${data.username}! 👋`;
+            document.getElementById('welcomeMsg').textContent = `Welcome, ${data.username}! 👋`;
             
             // Sidebar
             document.getElementById('sidebarName').textContent = data.username;
@@ -385,7 +385,7 @@
                     adminLink.className = "nav-item";
                     adminLink.style.color = "#ef4444"; 
                     adminLink.style.marginTop = "auto";
-                    adminLink.innerHTML = '<i data-lucide="shield-alert" size="20"></i> Yönetici Paneli';
+                    adminLink.innerHTML = '<i data-lucide="shield-alert" size="20"></i> Admin Panel';
                     navLinks.appendChild(adminLink);
                     lucide.createIcons();
                 }
@@ -399,7 +399,7 @@
                 
                 if (btn && card) {
                     btn.disabled = true;
-                    btn.innerHTML = 'Tamamlandı <i data-lucide="check" style="width:16px;"></i>';
+                    btn.innerHTML = 'Completed <i data-lucide="check" style="width:16px;"></i>';
                     card.classList.add('completed');
                 }
             });
@@ -423,7 +423,7 @@
 
     // Dönem Sıfırlama
     async function resetCycle() {
-        if(!confirm("Tebrikler! 4 modülü de tamamladın.\n\nYeni bir değerlendirme döngüsü başlatmak istiyor musun?")) return;
+        if(!confirm("Congratulations! You've completed all 4 modules.\n\nWould you like to start a new assessment cycle?")) return;
 
         try {
             const userId = localStorage.getItem('user_id');
@@ -432,19 +432,19 @@
             });
 
             if(res.ok) {
-                alert("Yeni dönem başlatıldı! Başarılar.");
+                alert("New cycle started! Good luck.");
                 window.location.reload(); 
             } else {
-                alert("Bir hata oluştu.");
+                alert("An error occurred.");
             }
         } catch(err) {
-            alert("Sunucuya ulaşılamadı.");
+            alert("Could not reach server.");
         }
     }
 
     // Güvenli Çıkış
     function logout(ask = true) {
-        if (ask && !confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
+        if (ask && !confirm("Are you sure you want to logout?")) return;
         localStorage.clear();
         window.location.replace('/login.html');
     }

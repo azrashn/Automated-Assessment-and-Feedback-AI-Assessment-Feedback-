@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>Sınav - AI Assessment</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+        //  SESSION & STATUS CHECK
+        function checkSession() {
+            // A. Check if user is logged in
+            const userId = localStorage.getItem("user_id");
+            if (!userId) {
+                window.location.replace("/login.html");
+                return false;
+            }
+
+            // B. Check if exam is already completed
+            const isFinished = localStorage.getItem("exam_status");
+            if (isFinished === "completed") {
+                window.location.replace("/dashboard.html");
+                return false;
+            }
+            return true;
+        }
+
+        // Run check immediately on load
+        checkSession();
+
+        // HANDLE BROWSER BACK BUTTON CACHE 
+        window.addEventListener("pageshow", function(event) {
+            // If page is loaded from back-forward cache, force reload
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+
+        //  HISTORY TRAP 
+        // Pushes a dummy state to history so back button stays on page
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+
+  <style>
+    /* TEMEL TASARIM */
+    :root { --bg-body:#020617; --bg-card:#0f172a; --bg-hover:#1e293b; --text-main:#f8fafc; --text-muted:#94a3b8; --primary:#4f46e5; --primary-hover:#4338ca; --border-color:#334155; --danger:#ef4444; --accent:#0ea5e9; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; margin:0; }
+    
+    header { height: 70px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; background: var(--bg-card); }
+    .timer-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-family: monospace; font-size: 1.1rem; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .exam-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; overflow-y: auto; }
+    .question-card { width: 100%; max-width: 800px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    
+    .q-meta { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+    .q-text { font-size: 1.25rem; font-weight: 500; margin-bottom: 2rem; line-height: 1.6; }
+    
+    /* SES OYNATICI (Listening) */
+    .audio-player-box { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+    .player-header { display: flex; justify-content: space-between; align-items: center; }
+    .play-counter { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 20px; }
+    .progress-track { flex: 1; height: 8px; background: var(--bg-body); border-radius: 4px; overflow: hidden; position: relative; }
+    .progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.2s linear; }
+    .custom-play-btn { background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+    .custom-play-btn:hover { background: var(--primary-hover); }
+    .custom-play-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
+
+    /* SPEAKING KAYIT STİLİ */
+    .record-box { text-align: center; padding: 2rem; border: 2px dashed var(--border-color); border-radius: 12px; background: var(--bg-hover); }
+    .record-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--danger); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; transition: 0.2s; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.2); }
+    .record-btn:hover { transform: scale(1.05); }
+    .record-btn.recording { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    .status-text { font-size: 1rem; font-weight: 500; color: var(--text-main); margin-bottom: 0.5rem; }
+
+    /* WRITING STİLLERİ */
+    .writing-wrapper { display: flex; flex-direction: column; gap: 10px; }
+    .security-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+    .exam-textarea { width: 100%; height: 250px; background: var(--bg-body); border: 1px solid var(--border-color); color: white; padding: 1rem; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; resize: vertical; }
+    .exam-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    .word-counter { text-align: right; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+
+    /* ŞIKLAR */
+    .options-grid { display: grid; gap: 1rem; }
+    .option-btn { width: 100%; text-align: left; padding: 1rem; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+    .option-btn:hover { border-color: var(--primary); color: white; background: rgba(79, 70, 229, 0.05); }
+    .option-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+    .option-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+    .option-btn.selected .option-circle { border-color: white; background: white; color: var(--primary); }
+
+    .footer-bar { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); }
+    .btn-next { background: var(--primary); color: white; padding: 0.8rem 2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .btn-next:hover { background-color: #4338ca; }
+    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight:700; display:flex; gap:10px; align-items:center;">
+        <i id="moduleIcon" data-lucide="book-open" style="color:var(--primary);"></i>
+        <span id="moduleName">Yükleniyor...</span>
+    </div>
+    <div class="timer-badge" id="timer">00:00</div>
+</header>
+
+<div class="exam-container">
+    <div class="question-card" id="questionArea">
+        <div style="text-align:center; color:var(--text-muted); padding: 2rem;">
+            <i data-lucide="loader-2" class="animate-spin" style="width: 32px; height: 32px; margin-bottom: 1rem;"></i>
+            <p>Sorular sunucudan çekiliyor...</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-bar">
+    <div style="color:var(--text-muted);">Soru <span id="currentQ" style="color:white; font-weight:bold;">-</span> / <span id="totalQ">-</span></div>
+    <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Sonraki Soru</button>
+</footer>
+
+<script>
+    lucide.createIcons();
+    
+    // DEĞİŞKENLER 
+    let questions = [];
+    let currentQIndex = 0;
+    let userAnswers = {}; 
+    let currentPlayCount = 0;
+    let sessionId = 0;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('cat') || 'reading';
+    const level = urlParams.get('lvl') || 'A1';
+    const userId = localStorage.getItem('user_id');
+
+    if(!userId) window.location.href = '/login.html';
+
+    // Header Başlığı
+    document.getElementById('moduleName').textContent = category.toUpperCase() + " MODÜLÜ (" + level + ")";
+    if(category === 'listening') document.getElementById('moduleIcon').setAttribute('data-lucide', 'headphones');
+    if(category === 'writing') document.getElementById('moduleIcon').setAttribute('data-lucide', 'pen-tool');
+    if(category === 'speaking') document.getElementById('moduleIcon').setAttribute('data-lucide', 'mic');
+    lucide.createIcons();
+
+    function formatTime(seconds) {
+        if (!seconds || isNaN(seconds) || seconds === Infinity || seconds < 0) return "00:00";
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    }
+
+    function enableSecurity() {
+        // GERİ TUŞU ENGELLEME  Sayfa geçmişine sürekli mevcut sayfayı itiyoruz.
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+
+        // SAYFADAN AYRILMA UYARISI  Yenileme, Kapatma veya Linke tıklama durumunda uyarır
+        window.onbeforeunload = function() {
+            return "Sınav devam ediyor. Ayrılırsanız sınavınız sonlanabilir.";
+        };
+
+        // SAĞ TIK ve SEÇİM ENGELLEME 
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Sağ tık kapatır
+        document.addEventListener('copy', event => event.preventDefault());        // Kopyalama kapatır
+        document.addEventListener('paste', event => event.preventDefault());       // Yapıştırma kapatır
+    }
+
+    // Güvenliği kaldır (Sınav bitince çalışır)
+    function disableSecurity() {
+        window.onbeforeunload = null;
+    }
+
+    // SORULARI YÜKLE VE SINAVI BAŞLAT
+    async function loadQuestions() {
+        try {
+            // Güvenlik Önlemlerini Aktif Et
+            enableSecurity();
+
+            const res = await fetch(`http://127.0.0.1:8000/api/exam/start?user_id=${userId}&level=${level}&skill=${category}`);
+            
+            if(!res.ok) {
+                 const errData = await res.json();
+                 if(res.status === 400 && errData.detail.includes("zaten")) {
+                     disableSecurity(); // Hata varsa güvenliği kaldır ki çıkabilsin
+                     alert(errData.detail);
+                     window.location.href = "/dashboard.html";
+                     return;
+                 }
+                 throw new Error(errData.detail || "Soru bulunamadı.");
+            }
+            
+            const data = await res.json();
+            sessionId = data.session_id; 
+            const serverRemainingSeconds = data.remaining_seconds;
+
+            // KALINAN YERİ YÜKLEME
+            const savedData = getProgress();
+            
+            if (savedData && savedData.questions && savedData.questions.length > 0) {
+                console.log("♻️ Eski oturum verisi geri yüklendi.");
+                questions = savedData.questions;
+                currentQIndex = savedData.index || 0;
+                userAnswers = savedData.answers || {};
+            } else {
+                console.log("🆕 Yeni sorular yüklendi.");
+                questions = data.questions; 
+                saveProgress(); 
+            }
+
+            if(questions.length === 0) throw new Error("Soru bulunamadı.");
+
+            document.getElementById('totalQ').innerText = questions.length;
+            showQuestion(currentQIndex);
+            startTimer(serverRemainingSeconds); 
+
+        } catch (err) {
+            disableSecurity();
+            document.getElementById('questionArea').innerHTML = `<div style="text-align:center; padding:2rem; color:red;">${err.message}</div>`;
+            document.getElementById('nextBtn').disabled = true;
+            setTimeout(() => { window.location.href = "/dashboard.html"; }, 3000);
+        }
+    }
+
+    function saveProgress() {
+        if(!sessionId) return;
+        const storageKey = `exam_session_${sessionId}`;
+        const state = {
+            questions: questions, 
+            index: currentQIndex,
+            answers: userAnswers
+        };
+        localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function getProgress() {
+        if(!sessionId) return null;
+        const storageKey = `exam_session_${sessionId}`;
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : null;
+    }
+
+    function clearProgress() {
+        if(!sessionId) return;
+        const storageKey = `exam_session_${sessionId}`;
+        localStorage.removeItem(storageKey);
+    }
+
+    // SORUYU GÖSTER 
+    function showQuestion(index) {
+        const q = questions[index];
+        const card = document.getElementById('questionArea');
+        document.getElementById('currentQ').innerText = index + 1;
+        currentPlayCount = 0;
+
+        const nextBtn = document.getElementById('nextBtn');
+        if (index === questions.length - 1) {
+            nextBtn.innerText = "Sınavı Bitir";
+            nextBtn.style.background = "#22c55e";
+        } else {
+            nextBtn.innerText = "Sonraki Soru";
+            nextBtn.style.background = "var(--primary)";
+        }
+
+        let contentHtml = '';
+
+        if (category === 'speaking') {
+            const isAnswered = userAnswers[q.question_id] ? true : false;
+            contentHtml = `
+                <div class="record-box">
+                    <button id="recBtn_${q.question_id}" class="record-btn ${isAnswered ? 'answered' : ''}" 
+                        onclick="toggleRecording(${q.question_id})" ${isAnswered ? 'disabled' : ''}
+                        style="${isAnswered ? 'background:#22c55e;' : ''}">
+                        ${isAnswered ? '<i data-lucide="check"></i>' : '<i data-lucide="mic"></i>'}
+                    </button>
+                    <div class="status-text" id="status_${q.question_id}" style="${isAnswered ? 'color:#22c55e' : ''}">
+                        ${isAnswered ? 'Kayıt Yüklendi.' : 'Kayda başlamak için mikrofona dokunun'}
+                    </div>
+                </div>`;
+        }
+        else if (q.options && q.options.length > 0) {
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            contentHtml = `<div class="options-grid">
+                ${q.options.map((opt, i) => `
+                    <button class="option-btn ${userAnswers[q.question_id] == opt.option_id ? 'selected' : ''}" onclick="selectOption(this, ${q.question_id}, ${opt.option_id})">
+                        <div class="option-circle">${letters[i]}</div>
+                        <span>${opt.content}</span>
+                    </button>
+                `).join('')}
+            </div>`;
+        } 
+        else {
+            const savedText = userAnswers[q.question_id] || '';
+            const wordCount = savedText.trim() === '' ? 0 : savedText.trim().split(/\s+/).length;
+            contentHtml = `
+                <div class="writing-wrapper">
+                    <div class="security-badge"><i data-lucide="shield-alert" style="width:16px;"></i> Güvenlik Modu: Kopyala/Yapıştır Yasak (FR-19)</div>
+                    <textarea class="exam-textarea" placeholder="Kompozisyonunuzu buraya yazın..."
+                     oninput="handleWritingInput(${q.question_id}, this)">${savedText}</textarea>
+                    <div class="word-counter">Kelime: <span id="wCount_${q.question_id}" style="color:var(--primary);">${wordCount}</span></div>
+                </div>`;
+        }
+
+        let mediaHtml = '';
+        if (q.media_url && category === 'listening') {
+            const audioPath = `http://127.0.0.1:8000${q.media_url}`; 
+            mediaHtml = `
+                <div class="audio-player-box">
+                    <div class="player-header">
+                        <span style="font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="play-circle"></i> Dinleme Kaydı
+                        </span>
+                        <span id="playCounter" class="play-counter">Kalan Hak: 2</span>
+                    </div>
+                    <audio id="audioPlayer" style="display:none;" preload="metadata"><source src="${audioPath}" type="audio/mpeg"></audio>
+                    <div style="display:flex; align-items:center; gap:1rem; margin-top:1rem;">
+                        <button id="customPlayBtn" class="custom-play-btn" onclick="playAudioSafe()"><i data-lucide="play" style="width:16px;"></i> Oynat</button>
+                        <div class="progress-track"><div id="audioProgress" class="progress-fill"></div></div>
+                        <span id="timeDisplay" style="font-size:0.8rem; color:var(--text-muted); min-width:80px; text-align:right;">00:00 / 00:00</span>
+                    </div>
+                </div>`;
+        }
+
+        card.innerHTML = `
+            <div class="q-meta"><span>Zorluk: ${level}</span><span>Puan: 10</span></div>
+            ${mediaHtml}
+            <div class="q-text">${q.text}</div>
+            ${contentHtml}
+        `;
+        lucide.createIcons();
+        if (q.media_url && category === 'listening') setupAudioLogic();
+    }
+
+    function handleWritingInput(qId, el) { 
+        userAnswers[qId] = el.value; 
+        const count = el.value.trim() === '' ? 0 : el.value.trim().split(/\s+/).length;
+        document.getElementById(`wCount_${qId}`).innerText = count;
+        saveProgress();
+    }
+    
+    window.selectOption = function(btn, qId, optId) {
+        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        userAnswers[qId] = optId;
+        saveProgress();
+    }
+
+    window.nextQuestion = function() {
+        if (currentQIndex < questions.length - 1) {
+            currentQIndex++;
+            saveProgress();
+            showQuestion(currentQIndex);
+        } else {
+            finishExam();
+        }
+    }
+
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function toggleRecording(qId) {
+        const btn = document.getElementById(`recBtn_${qId}`);
+        const statusText = document.getElementById(`status_${qId}`);
+
+        if (!isRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await uploadAudio(qId, audioBlob);
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                btn.classList.add('recording');
+                btn.innerHTML = '<i data-lucide="square" style="width:32px; height:32px;"></i>';
+                statusText.innerText = "Kaydediliyor...";
+                statusText.style.color = "#ef4444";
+                lucide.createIcons();
+            } catch (err) { alert("Mikrofon izni gerekli!"); }
+        } else {
+            mediaRecorder.stop();
+            isRecording = false;
+            btn.classList.remove('recording');
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i>';
+            statusText.innerText = "Yükleniyor...";
+            lucide.createIcons();
+        }
+    }
+
+    async function uploadAudio(qId, blob) {
+        const formData = new FormData();
+        const filename = `rec_${Date.now()}.webm`;
+        formData.append("file", blob, filename);
+        
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/exam/upload-audio', { method: 'POST', body: formData });
+            const data = await res.json();
+            userAnswers[qId] = data.filename;
+            
+            const btn = document.getElementById(`recBtn_${qId}`);
+            btn.style.background = "#22c55e";
+            btn.innerHTML = '<i data-lucide="check" style="width:32px; height:32px;"></i>';
+            btn.disabled = true;
+            document.getElementById(`status_${qId}`).innerText = "Kayıt Başarılı.";
+            document.getElementById(`status_${qId}`).style.color = "#22c55e";
+            lucide.createIcons();
+            saveProgress();
+        } catch (err) { 
+            alert("Ses yüklenirken hata oluştu."); 
+            const btn = document.getElementById(`recBtn_${qId}`);
+            btn.innerHTML = '<i data-lucide="mic"></i>';
+            lucide.createIcons();
+        }
+    }
+
+    function setupAudioLogic() {
+        const audio = document.getElementById('audioPlayer');
+        const progressBar = document.getElementById('audioProgress');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const btn = document.getElementById('customPlayBtn');
+
+        const updateTime = () => {
+            const curr = audio.currentTime || 0;
+            const dur = audio.duration || 0;
+            timeDisplay.innerText = `${formatTime(curr)} / ${formatTime(dur)}`;
+            if (dur > 0) progressBar.style.width = (curr / dur * 100) + "%";
+        };
+
+        audio.addEventListener('timeupdate', updateTime);
+        audio.addEventListener('loadedmetadata', updateTime);
+        
+        audio.addEventListener('ended', () => {
+            if (currentPlayCount < 2) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="rotate-cw"></i> Tekrar';
+                btn.style.background = "var(--primary)";
+                lucide.createIcons();
+            } else {
+                btn.innerHTML = '<i data-lucide="lock"></i> Doldu';
+                btn.style.opacity = "0.6";
+                btn.disabled = true;
+                lucide.createIcons();
+            }
+        });
+    }
+
+    window.playAudioSafe = function() {
+        const audio = document.getElementById('audioPlayer');
+        const btn = document.getElementById('customPlayBtn');
+        const counterText = document.getElementById('playCounter');
+
+        if (currentPlayCount >= 2) { alert("Hakkınız doldu."); return; }
+
+        currentPlayCount++;
+        const remains = 2 - currentPlayCount;
+        counterText.innerText = `Kalan Hak: ${remains}`;
+        
+        audio.play();
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="volume-2"></i>';
+        lucide.createIcons();
+    }
+
+    async function finishExam() {
+        if(!confirm("Sınavı bitirmek istediğinize emin misiniz?")) return;
+
+        disableSecurity(); // Sınav bittiği için güvenliği kapat
+        
+        const submitBtn = document.getElementById('nextBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Kaydediliyor...";
+
+        const answersPayload = Object.keys(userAnswers).map(qId => {
+            const val = userAnswers[qId];
+            if (typeof val === 'number') return { question_id: parseInt(qId), selected_option_id: val };
+            else return { question_id: parseInt(qId), text_response: val };
+        });
+
+        const payload = { 
+            session_id: sessionId, 
+            answers: answersPayload,
+            skill: category 
+        };
+
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/exam/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if(!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.detail || "Kayıt hatası");
+            }
+            
+            const result = await res.json();
+            
+            clearProgress();
+            
+            let msg = `Sınav Bitti!\nPuan: ${result.overall_score}`;
+            if(result.feedback) msg += `\n\n🤖 Analiz:\n${result.feedback}`;
+            alert(msg);
+            window.location.href = "/dashboard.html";
+
+        } catch (err) {
+            alert("Hata: " + err.message);
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Tekrar Dene";
+        }
+    }
+
+    function startTimer(seconds) {
+        const timerEl = document.getElementById('timer');
+        let rem = seconds;
+        timerEl.innerText = formatTime(rem);
+
+        const interval = setInterval(() => {
+            if(rem <= 0) {
+                clearInterval(interval);
+                disableSecurity(); // Süre bitince de güvenlik kapansın
+                alert("Süre doldu!");
+                finishExam(); 
+                return;
+            }
+            rem--;
+            timerEl.innerText = formatTime(rem);
+        }, 1000);
+    }
+
+    function completeExam() {
+    // 1. Mark exam as completed in storage
+    localStorage.setItem("exam_status", "completed");
+    
+    // 2. Redirect to Dashboard 
+    window.location.replace("/dashboard.html");
+    }  
+
+    // Sayfa yüklendiğinde geçmişe sahte bir durum ekle
+    history.pushState(null, null, location.href);
+
+    // Kullanıcı Geri tuşuna bastığında tetiklenir
+    window.onpopstate = function () {
+    // Onu tekrar ileri (şu anki sayfaya) it
+    history.go(1);
+    };
+
+    loadQuestions();
+
+</script>
+
+</body>
+</html>

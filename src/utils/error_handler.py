@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-def check_found(resource, name: str = "Kayıt"):
+def check_found(resource, name: str = "Register"):
     """
     Veritabanından çekilen objenin varlığını kontrol eder.
     Yoksa 404 hatası fırlatır.
@@ -10,12 +10,12 @@ def check_found(resource, name: str = "Kayıt"):
     check_found(user, "Kullanıcı")
     """
     if not resource:
-        raise HTTPException(status_code=404, detail=f"{name} bulunamadı")
+        raise HTTPException(status_code=404, detail=f"{name} not found")
 
 def raise_bad_request(message: str):
     """Genel 400 hatası fırlatır."""
     raise HTTPException(status_code=400, detail=message)
 
-def raise_unauthorized(message: str = "Yetkisiz işlem"):
+def raise_unauthorized(message: str = "Unauthorized operation"):
     """Genel 401 hatası fırlatır."""
     raise HTTPException(status_code=401, detail=message)

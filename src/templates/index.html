@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Assessment - Measure Your Language Level</title>
+  <title>AI Assessment - Measure Your Language Proficiency</title>
   
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
-    /* Tasarım Değişkenleri ve Renk Şeması - Koyu Tema (AI/Teknoloji Temalı) */
+    /* Tasarım değişkenleri - Tech Theme */
     :root {
-        /* Arka Plan Renkleri */
-        --bg-body: #020617;      /* Ana arka plan - Çok koyu lacivert */
-        --bg-card: #0f172a;      /* Kartlar ve bileşenler için arka plan */
-        --bg-hover: #1e293b;     /* Hover durumu arka planı */
-        --border-color: #334155; /* Çizgiler ve bölenler */
+        /* Background colors: Dark mode */
+        --bg-body: #020617;      /* Çok koyu lacivert/siyah - sayfa arka planı */
+        --bg-card: #0f172a;      /* Kart arka planı */
+        --bg-hover: #1e293b;     /* Hover durumu */
+        --border-color: #334155; /* Kenarlık çizgileri */
         
-        /* Metin ve Tipografi Renkleri */
-        --text-main: #f8fafc;    /* Başlıklar ve ana metin */
-        --text-muted: #94a3b8;   /* İkincil metin - Açıklamalar */
+        /* Yazı renkleri */
+        --text-main: #f8fafc;    /* Ana başlıklar */
+        --text-muted: #94a3b8;   /* Açıklama metinleri */
         
-        /* Birincil Marka Rengi - İndigo (Yapay Zeka Teması) */
-        --primary: #4f46e5;      /* Ana aksiyon rengi */
-        --primary-hover: #4338ca;/* Hover durumu - daha koyu indigo */
-        --accent: #0ea5e9;       /* Vurgu rengi - Gökyüzü mavisi */
+        /* Ana renk - İndigo/Mavi yapay zeka hissi vermek için */
+        --primary: #4f46e5;      /* İndigo */
+        --primary-hover: #4338ca;/* Darker indigo on hover */
+        --accent: #0ea5e9;       /* Vurgular için accent rengimiz */
         
         --header-h: 70px;
         --radius: 12px;
@@ -44,18 +44,18 @@
     a { text-decoration: none; color: inherit; transition: 0.2s; }
     button { cursor: pointer; border: none; font-family: inherit; }
     
-    /* Kaydırma Çubuğu Tasarımı */
+    /* Scrollbar'ı kendi stilimize göre şekillendirelim */
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: var(--bg-body); }
     ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-    /* Sabit Başlık / Navigasyon - Buzlu Cam Efekti */
+    /* Sayfanın en üstündeki sabit başlık bölümü */
     header {
         position: fixed; top: 0; left: 0; right: 0;
         height: var(--header-h);
-        background-color: rgba(15, 23, 42, 0.85); /* Yarı saydam arka plan */
-        backdrop-filter: blur(12px); /* Buzlu cam efekti */
+        background-color: rgba(15, 23, 42, 0.85); /* Hafif şeffaf koyu zemin */
+        backdrop-filter: blur(12px); /* Buzlu cam efekti gibi görünsün */
         border-bottom: 1px solid var(--border-color);
         display: flex; align-items: center; justify-content: space-between;
         padding: 0 2rem;
@@ -89,29 +89,30 @@
         display: inline-flex; align-items: center; gap: 0.5rem;
     }
     
-    /* Çizgili Buton Stili */
+    /* Şeffaf arka planlı buton stili */
     .btn-outline {
         border: 1px solid var(--border-color); color: var(--text-main); background: transparent;
     }
     .btn-outline:hover { border-color: var(--text-main); background: rgba(255,255,255,0.05); }
     
-    /* Birincil Buton Stili */
+    /* Dolu/solid buton stili */
     .btn-primary {
         background: var(--primary); color: white;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     }
     .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-    /* Ana Sayfa Başlığı - Arka Plan Görseli ile Tam Ekran */
+    /* Karşılama bölümü - Büyük başlık alanı */
     .hero {
         margin-top: var(--header-h);
         position: relative;
-        min-height: 85vh; /* Ekranın %85'i */
+        min-height: 85vh; /* Ekranın %85'i kadar yüksek */
         display: flex; align-items: center;
+        /* Teknoloji/ofis temalı bir görsel ekleyelim */
         background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1920&auto=format&fit=crop');
         background-size: cover; background-position: center;
     }
-    /* Gradient kaplama - Metni arka plan üzerinde okunur kılar */
+    /* Arkaya koyu mavi bir kat ekleyelim ki okuma rahat olsun */
     .hero::before {
         content: ''; position: absolute; inset: 0;
         background: linear-gradient(to right, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.8) 60%, rgba(79, 70, 229, 0.2) 100%);
@@ -139,7 +140,7 @@
         display: flex; align-items: center; gap: 0.4rem;
     }
 
-    /* İçerik Bölümleri ve Kart Düzeni */
+    /* Kartlar ve içerik bölümleri */
     .container { max-width: 1200px; margin: 5rem auto; padding: 0 2rem; }
     
     .section-header { margin-bottom: 3rem; text-align: left; }
@@ -159,7 +160,7 @@
         display: flex; flex-direction: column; gap: 1rem;
         position: relative; overflow: hidden;
     }
-    /* Sol tarafta vurgu çubuğu hover'da beliriyor - Görsel derinlik ve anlam */
+    /* Kartlara üzerine gelince parlayan çizgi efekti verelim */
     .card::before {
         content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
         background: var(--primary); opacity: 0; transition: 0.3s;
@@ -183,7 +184,7 @@
         margin-bottom: 0.5rem; border: 1px solid rgba(79, 70, 229, 0.2);
     }
 
-    /* Teknoloji Özellikleri Bölümü - İki Sütun Düzeni */
+    /* Teknoloji özellikleri bölümü - yan yana iki sütun */
     .tech-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;
         background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border-color);
@@ -197,7 +198,7 @@
     }
     .check-icon { color: var(--primary); }
 
-    /* Alt Bilgi - Site Altı Linkler ve Telif Hakkı */
+    /* Sayfanın alt kısmı - footer */
     footer {
         background-color: #020617;
         border-top: 1px solid var(--border-color);
@@ -211,15 +212,15 @@
     .footer-links a { color: var(--text-muted); margin-left: 2rem; font-size: 0.9rem; transition: 0.2s; }
     .footer-links a:hover { color: var(--primary); }
 
-    /* Duyarlı Tasarım - Mobil ve Tablet (max-width: 768px) */
+    /* Mobil cihazlar için responsive tasarım */
     @media (max-width: 768px) {
         .header { padding: 0 1rem; }
         .hero-content { grid-template-columns: 1fr; text-align: center; padding-top: 2rem; }
         .hero-text h2 { font-size: 2.8rem; }
         .hero-badges { justify-content: center; }
-        nav { display: none; } /* Mobil ekranlarda masaüstü navigasyonunu gizle */
+        nav { display: none; } /* Mobil menüyü gizleyelim */
         .tech-grid { grid-template-columns: 1fr; padding: 1.5rem; }
-        .cta-group .btn-outline { display: none; } /* Yer tasarrufu için keşfet butonunu kaldır */
+        .cta-group .btn-outline { display: none; } /* Dar ekranlarda yer kazanalım */
     }
   </style>
 </head>
@@ -253,13 +254,13 @@
       <div class="hero-content">
         <div class="hero-text">
           <div class="hero-badges">
-            <span class="badge"><i data-lucide="check-circle" size="14"></i> Quick Results</span>
+            <span class="badge"><i data-lucide="check-circle" size="14"></i> Instant Results</span>
             <span class="badge"><i data-lucide="bar-chart-2" size="14"></i> A1-C2 Analysis</span>
           </div>
           <h2>Measure Your Language<br>Level with AI.</h2>
           <p>
-            Forget traditional exams. Test your reading, writing, listening, and speaking skills with AI-powered, secure, and fast assessment.
-            Get instant feedback and see where you need to improve.
+            Forget traditional exams. Test your Reading, Writing, Listening, and Speaking skills with AI-powered, secure, and fast assessments.
+            Get instant feedback and discover your areas for improvement.
           </p>
           <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
             <a href="login.html" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1rem;">
@@ -275,7 +276,7 @@
 
     <section id="moduller" class="container">
       <div class="section-header">
-        <span>SKILLS-FOCUSED ASSESSMENT</span>
+        <span>SKILL-BASED ASSESSMENT</span>
         <h3>Exam Modules</h3>
       </div>
       
@@ -283,25 +284,25 @@
         <article class="card">
           <img src="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=400" alt="Reading" class="card-img">
           <h3><i data-lucide="book-open" style="vertical-align: middle; margin-right:8px; color:var(--primary);"></i> Reading</h3>
-          <p>Analyze texts at different difficulty levels. Adaptive questions measure your vocabulary and comprehension capacity.</p>
+          <p>Analyze texts at various difficulty levels. Adaptive questions that measure your vocabulary and comprehension skills.</p>
         </article>
 
         <article class="card">
           <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=400" alt="Writing" class="card-img">
           <h3><i data-lucide="pen-tool" style="vertical-align: middle; margin-right:8px; color:var(--primary);"></i> Writing</h3>
-          <p>Composition and text creation skills. Instant AI analysis for grammar errors, word choice, and expression issues.</p>
+          <p>Test your composition and text creation skills. AI-powered analysis of grammar errors, word choice, and expression issues.</p>
         </article>
 
         <article class="card">
           <img src="https://images.unsplash.com/photo-1590650153855-d9e808231d41?q=80&w=400" alt="Listening" class="card-img">
           <h3><i data-lucide="headphones" style="vertical-align: middle; margin-right:8px; color:var(--primary);"></i> Listening</h3>
-          <p>Listen to audio recordings with various accents and speeds. Interactive module to measure your listening comprehension.</p>
+          <p>Listen to audio recordings with various accents and speeds. Interactive module that measures your comprehension ability.</p>
         </article>
 
         <article class="card">
           <img src="https://images.unsplash.com/photo-1557200134-90327ee9fafa?q=80&w=400" alt="Speaking" class="card-img">
           <h3><i data-lucide="mic" style="vertical-align: middle; margin-right:8px; color:var(--primary);"></i> Speaking</h3>
-          <p>Use your microphone. Pronunciation, fluency, and word usage are scored within seconds using "Speech-to-Text" technology.</p>
+          <p>Use your microphone to speak. Your pronunciation, fluency, and vocabulary usage are scored in seconds using Speech-to-Text technology.</p>
         </article>
       </div>
     </section>
@@ -312,20 +313,20 @@
           <div class="icon-box"><i data-lucide="cpu" size="32"></i></div>
           <h4>Why AI Assessment?</h4>
           <p style="color:var(--text-muted); font-size:1.1rem;">
-            Unlike traditional exams, our AI-powered system gives you not just a score, but a detailed roadmap.
+            Unlike traditional exams, our AI-powered system gives you not just a score, but a detailed roadmap for improvement.
           </p>
           <ul class="tech-list">
             <li>
                 <i data-lucide="zap" class="check-icon"></i>
-                <span><b>Quick Results:</b> Your report is ready within 45 seconds after the exam ends.</span>
+                <span><b>Instant Results:</b> Your report is ready in 45 seconds after finishing the exam.</span>
             </li>
             <li>
                 <i data-lucide="shield-check" class="check-icon"></i>
-                <span><b>Secure Environment:</b> Fair exam with copy protection and tab monitoring.</span>
+                <span><b>Secure Environment:</b> Fair testing with cheating protection and tab monitoring.</span>
             </li>
             <li>
                 <i data-lucide="layers" class="check-icon"></i>
-                <span><b>Level Assessment:</b> Scoring fully compliant with CEFR standards (A1-C2).</span>
+                <span><b>Level Detection:</b> Fully compliant scoring aligned with CEFR standards (A1-C2).</span>
             </li>
           </ul>
         </div>
@@ -339,10 +340,10 @@
 
     <section id="hakkimizda" class="container">
       <div class="card" style="background: linear-gradient(145deg, #1e1b4b, #312e81); border:none; text-align:center; padding: 4rem 2rem;">
-        <h3 style="margin-bottom: 1.5rem; color: white; font-size:2rem;">The Future of Education Standards</h3>
+        <h3 style="margin-bottom: 1.5rem; color: white; font-size:2rem;">Education Standard of the Future</h3>
         <p style="font-size: 1.2rem; color: #e0e7ff; max-width:800px; margin: 0 auto 2rem;">
-            This project was developed to democratize language learning and enable everyone to objectively measure their own level.
-            Our AI analysis module identifies student strengths and weaknesses, providing personalized improvement suggestions.
+            This project was developed to democratize language learning and enable everyone to objectively measure their own proficiency level.
+            Our AI-powered analysis module identifies students' strengths and weaknesses, offering personalized improvement recommendations.
         </p>
         <div>
             <span style="color:var(--accent); font-weight:600;">Project Team:</span>
@@ -361,7 +362,7 @@
       </div>
       <div class="footer-links">
         <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Use</a>
+        <a href="#">Terms of Service</a>
         <a href="#">Support</a>
         <span style="color:#475569; margin-left:2rem;">© 2025 All Rights Reserved.</span>
       </div>
@@ -369,42 +370,46 @@
   </footer>
 
   <script>
-    /* İkon kütüphanesini başlat */
+    // İkonları sayfaya ekleyelim
     lucide.createIcons();
 
-    /* Oturum Yönetimi - Sayfa yüklemede kimlik doğrulama durumunu kontrol et */
+    // Oturum kontrolü - kullanıcı zaten giriş yapmış mı kontrol edelim
     document.addEventListener("DOMContentLoaded", function() {
         const userId = localStorage.getItem("user_id");
+        
+        // Header'daki buton grubunu ve giriş butonunu bulalım
         const ctaGroup = document.querySelector('.cta-group');
         const loginBtn = document.querySelector('.cta-group .btn-primary');
 
-        /* Kullanıcı zaten giriş yapmışsa, başlıktaki navigasyon butonlarını güncelle */
         if (userId && loginBtn) {
-            /* "Giriş Yap" yerine "Panele Git" linki koy */
+            // Eğer kullanıcı zaten giriş yapmışsa
+            
+            // Giriş butonunu Dashboard'a git olarak değiştirelim
             loginBtn.href = "dashboard.html";
-            loginBtn.innerHTML = '<i data-lucide="layout-dashboard" style="width:18px;"></i> Panele Git';
-            loginBtn.style.backgroundColor = "#0ea5e9"; /* Giriş yapan durum için vurgu rengi */
+            loginBtn.innerHTML = '<i data-lucide="layout-dashboard" style="width:18px;"></i> Dashboard';
+            loginBtn.style.backgroundColor = "#0ea5e9";
 
-            /* "Çıkış Yap" butonu oluştur ve çıkış işlemcisini bağla */
+            // Yanına çıkış butonunu ekleyelim
             const logoutBtn = document.createElement('button');
             logoutBtn.className = 'btn btn-outline';
             logoutBtn.style.marginLeft = '0.5rem';
-            logoutBtn.style.borderColor = '#ef4444'; /* Çıkış işlemi için hata/uyarı rengi */
+            logoutBtn.style.borderColor = '#ef4444';
             logoutBtn.style.color = '#ef4444';
-            logoutBtn.innerHTML = '<i data-lucide="log-out" style="width:18px;"></i> Çıkış';
+            logoutBtn.innerHTML = '<i data-lucide="log-out" style="width:18px;"></i> Logout';
             
-            /* Çıkış işlemcisi - Tüm oturum verilerini temizle ve sayfayı yenile */
+            // Çıkış işlemini ayarlayalım
             logoutBtn.onclick = function() {
                 localStorage.removeItem('user_id');
                 localStorage.removeItem('username');
                 localStorage.removeItem('role');
-                window.location.reload(); /* Arayüz durumunu sıfırlamak için sayfayı yenile */
+                // Sayfayı yenileyerek orijinal butonları geri getirelim
+                window.location.reload();
             };
 
-            /* Çıkış butonunu başlıktaki CTA grubuna ekle */
+            // Çıkış butonunu header'a ekleyelim
             ctaGroup.appendChild(logoutBtn);
             
-            /* Yeni eklenen buton için ikon kütüphanesini yeniden başlat */
+            // Yeni eklenen buton için ikonları tekrar oluşturalım
             lucide.createIcons();
         }
     });

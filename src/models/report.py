@@ -9,7 +9,7 @@ class FeedbackReport(Base):
     report_id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, ForeignKey("exam_sessions.session_id"))
     
-    # FR-11 & Analysis Use Case: AI Modülünden gelen detaylı geri bildirimler
+    # FR-11 & Analysis Use Case: Detailed feedback coming from the AI Module
     recommendations = Column(Text)
     overall_score = Column(Float)
     score_breakdown = Column(JSON) # {reading: 80, writing: 70...}
@@ -20,11 +20,11 @@ class FeedbackReport(Base):
 class ErrorReport(Base):
     __tablename__ = "error_reports"
     
-    # FR-20: Teknik sorun bildirme
+    # FR-20: Reporting technical issues
     report_id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.user_id"))
-    description = Column(Text)      # Sorun detayı
-    issue_type = Column(String(50)) # Ses sorunu, Görüntü sorunu vb.
+    description = Column(Text)      # Detail of the issue
+    issue_type = Column(String(50)) # Audio issue, Video issue, etc.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     student = relationship("src.models.user.Student", back_populates="error_reports")

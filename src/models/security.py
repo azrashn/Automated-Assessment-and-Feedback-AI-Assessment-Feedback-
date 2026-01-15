@@ -12,6 +12,7 @@ class SecurityLog(Base):
 
 class SecurityPolicy(Base): 
   __tablename__ = "security_policies" 
+  
   policy_id = Column(Integer, primary_key=True, index=True)
   # SQL tablosuyla uyumlu
   policy_name = Column(String(50), unique=True) 

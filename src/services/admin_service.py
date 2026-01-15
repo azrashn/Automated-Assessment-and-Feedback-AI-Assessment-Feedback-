@@ -52,7 +52,7 @@ class AdminService:
         return self.u_repo.get_all_users()
 
     def remove_user(self, user_id: int):
-        """Completely deletes the user (Use with caution)."""
+        """Permanently deletes the user (Use with caution)."""
         return self.u_repo.delete_user(user_id)
 
     def toggle_user_status(self, user_id: int):
@@ -65,7 +65,7 @@ class AdminService:
             try:
                 self.db.commit()
                 self.db.refresh(user)
-                status_text = "Active" if user.is_active else "Inactive"
+                status_text = "Active" if user.is_active else "Passive"
                 print(f"👤 User Status Changed: ID {user_id} -> {status_text}")
                 return user.is_active
             except Exception as e:
@@ -75,7 +75,7 @@ class AdminService:
         return None
 
     # =========================================================================
-    # 3. EXAM AND GRADE MANAGEMENT (FR-17 EXISTING)
+    # 3. EXAM AND SCORE MANAGEMENT (FR-17 EXISTING)
     # =========================================================================
 
     def get_all_exam_sessions(self):
@@ -104,7 +104,7 @@ class AdminService:
             
             sess.detected_level = new_level
 
-            # 2. Update Report Card Record (LevelRecord)
+            # 2. Update Report Card (LevelRecord)
             record = self.db.query(LevelRecord).filter(LevelRecord.student_id == sess.student_id).first()
             if record and sess.answers:
                 first_q = sess.answers[0].question
@@ -152,7 +152,7 @@ class AdminService:
 
     def get_all_reports(self):
         """Lists all technical issue reports."""
-        # Joining with User table to get the student's name as well
+        # Joining with User table to get the student name
         return self.db.query(ErrorReport, User.username).join(
             User, ErrorReport.student_id == User.user_id
         ).order_by(ErrorReport.created_at.desc()).all()

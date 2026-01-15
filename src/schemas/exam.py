@@ -49,3 +49,15 @@ class ScoreOverride(BaseModel):
     session_id: int
     new_score: float
     reason: str
+
+class WritingInput(BaseModel):
+    text: str         
+    topic: str        
+    level: str = "A1" 
+
+class WritingFeedback(BaseModel):
+    score: int                  
+    grammar_errors: List[str]   
+    suggestions: List[str]      
+    corrected_text: str        
+    feedback_tr: str   

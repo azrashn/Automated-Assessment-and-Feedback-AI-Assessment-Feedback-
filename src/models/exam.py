@@ -37,11 +37,11 @@ class ExamSession(Base):
     
     start_time = Column(DateTime(timezone=True), server_default=func.now())
     
-    end_time = Column(DateTime(timezone=True), nullable=True) # Sınavın zorunlu bitiş saati
-    last_activity = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()) # Son işlem zamanı
+    end_time = Column(DateTime(timezone=True), nullable=True)
+    last_activity = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
  
 
-    status = Column(String(20), default="IN_PROGRESS") # IN_PROGRESS, COMPLETED, ABANDONED, EXPIRED
+    status = Column(String(20), default="IN_PROGRESS")
     overall_score = Column(Float, default=0.0)
     detected_level = Column(String(10), nullable=True)
     is_final = Column(Boolean, default=False) 
@@ -66,5 +66,3 @@ class Answer(Base):
 
     session = relationship("ExamSession", back_populates="answers")
     question = relationship("Question", back_populates="answers")
-
-

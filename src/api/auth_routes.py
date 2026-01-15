@@ -41,9 +41,6 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "msg": "Login Successful" 
     }
 
-# =============================================================================
-# FR-2: PROFILE OPERATIONS
-# =============================================================================
 
 @router.get("/profile/{user_id}")
 def get_profile(user_id: int, db: Session = Depends(get_db)):

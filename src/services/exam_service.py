@@ -7,20 +7,24 @@ from datetime import datetime
 from src.repositories.exam_repo import ExamRepository
 from src.services.ai_service import AIModule
 
-# Sınav Süresi (Dakika)
+# Exam Duration (Minutes)
 DEFAULT_EXAM_DURATION = 20 
 
 class ExamService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = ExamRepository(db)
-        self.ai = AIModule() # AI Modülünü 
+        self.ai = AIModule() # Initialize AI Module
+
+    # =========================================================================
+    # SECTION 1: EXAM FLOW (Exam Flow and Time Management)
+    # =========================================================================
 
     def start_exam_session(self, user_id: int, skill: str, level: str):
         """
-        Sınavı başlatır veya devam eden geçerli bir sınav varsa onu döndürür.
+        Starts an exam or returns a valid ongoing session if one exists.
         """
-        # 1. Döngü Kontrolü (Daha önce bu modülü bitirdi mi?)
+        # 1. Cycle Check (Has the user already finished this module?)
         record = self.repo.get_level_record(user_id)
         if record:
             completed_skills = []
@@ -34,22 +38,22 @@ class ExamService:
             elif skill.upper() in completed_skills:
                 raise HTTPException(
                     status_code=400, 
-                    detail=f"⚠️ {skill.upper()} modülünü bu dönemde zaten tamamladınız."
+                    detail=f"⚠️ You have already completed the {skill.upper()} module for this term."
                 )
 
-        # 2. Yarım Kalan Sınav Kontrolü
+        # 2. Incomplete Session Check
         active_session = self.repo.get_active_session(user_id)
         
         if active_session:
-            # A) Süre dolmuş mu?
+            # A) Has the time expired?
             if active_session.end_time and datetime.now() > active_session.end_time:
                 self.repo.mark_session_expired(active_session)
             else:
-                # B) Süre hala var -> Kaldığı yerden devam et
+                # B) Time remains -> Continue where left off
                 questions = self.repo.get_questions_by_skill(skill, level)
                 return active_session, questions
 
-        # 3. Yeni Oturum Oluştur
+        # 3. Create New Session
         new_session = self.repo.create_session(
             student_id=user_id, 
             level=level,
@@ -61,22 +65,22 @@ class ExamService:
 
     def save_answer(self, session_id: int, question_id: int, selected_option_id: int = None, text_response: str = None):
         """
-        Cevabı kaydeder. Önce Süre Kontrolü Yapar.
+        Saves the answer. CHECKS TIME FIRST.
         """
         session = self.repo.get_session(session_id)
         if not session:
-            raise HTTPException(404, "Sınav oturumu bulunamadı.")
+            raise HTTPException(404, "Exam session not found.")
         
-        # A) Statüs Kontrolü
+        # A) Status Check
         if session.status != "IN_PROGRESS":
-            raise HTTPException(400, "Bu sınav tamamlanmış veya süresi dolmuş.")
+            raise HTTPException(400, "This exam is completed or has expired.")
 
-        # B) Süre Kontrolü
+        # B) Time Check
         if session.end_time and datetime.now() > session.end_time:
             self.repo.mark_session_expired(session)
-            raise HTTPException(400, "Sınav süresi doldu! Cevabınız kaydedilmedi.")
+            raise HTTPException(400, "Exam time expired! Your answer was not saved.")
 
-        # C) Kayıt
+        # C) Save
         self.repo.save_answer(session_id, question_id, selected_option_id, text_response)
 
     def save_audio(self, file: UploadFile):
@@ -87,54 +91,65 @@ class ExamService:
             shutil.copyfileobj(file.file, buffer)
         return f"/static/uploads/{filename}"
 
+    # =========================================================================
+    # SECTION 2: SCORING & EVALUATION (SCORING AND AI)
+    # =========================================================================
+
     def finalize_exam(self, session_id: int, skill_name: str = None):
         session = self.repo.get_session(session_id)
         if not session: raise HTTPException(404, "Session not found")
         
-        if session.status == "EXPIRED":
-            raise HTTPException(400, "Sınav süresi dolduğu için sonuçlandırılamadı.")
-    
         scores = {}
         detected_speech_text = ""
 
-        # --- A. SORULARI PUANLA ---
+        # --- A. SCORE QUESTIONS ---
         for ans in session.answers:
             q = ans.question
             score = 0.0
-            is_answer_correct = False # Varsayılan yanlış
+            is_answer_correct = False # Default incorrect
 
+            # ---------------------------------------------------------
+            # 1. MULTIPLE CHOICE
+            # ---------------------------------------------------------
             if q.type == "MULTIPLE_CHOICE":
                 correct_opt = next((o for o in q.options if o.is_correct), None)
                 if correct_opt and ans.selected_option_id == correct_opt.option_id:
                     score = 100.0
                     is_answer_correct = True
             
+            # ---------------------------------------------------------
+            # 2. OPEN-ENDED / TEXT ANSWERS (Writing, Speaking)
+            # ---------------------------------------------------------
             else:
-                # Kullanıcı cevabını al (Text veya daha önce kaydedilmiş content)
+                # Get user response (Text or previously saved content)
                 user_text = (ans.content or ans.text_response or "").strip()
                 skill_cat = (q.skill_category or "WRITING").upper()
 
-                # Konuşmada önce transkrip et
+                # --- 2.1 SPEAKING: Transcribe First ---
                 if skill_cat == "SPEAKING":
                     audio_path = ans.content or ans.audio_path
                     if audio_path:
-                        # Full path oluştur
+                        # Create full path
                         full_path = f"src{audio_path}" if audio_path.startswith("/static") else audio_path
                         
-                        # AI Servisini Çağır (Ses -> Metin)
+                        # Call AI Service (Voice -> Text)
                         transcribed_text = self.ai.speech_to_text(full_path)
                         
-                        # Transkripti kaydet ki analizde görünsün
+                        # Save transcript so it appears in analysis
                         ans.content = transcribed_text 
                         user_text = transcribed_text
                         detected_speech_text = transcribed_text
                     else:
                         user_text = ""
+
+                # --- 2.2 EVALUATION ---
                 
+                
+                # A) IF EXACT ANSWER EXISTS (Reading/Listening fill-in-the-blank)
                 correct_text_opt = next((o for o in q.options if o.is_correct), None)
                 
                 if correct_text_opt:
-                    # String Normalizasyonu (Küçük harf, boşluk silme)
+                    # String Normalization (Lower case, strip whitespace)
                     correct_text = correct_text_opt.content.strip().lower()
                     user_text_norm = user_text.strip().lower()
                     
@@ -144,41 +159,42 @@ class ExamService:
                     else:
                         score = 0.0
                 
-                #  Ai analizi
+                # B) AI ANALYSIS (Essay / Speaking / Commentary Question)
                 else:
                     if user_text:
-                        # Admin panelinden girilen keywords varsa al
+                        # Get keywords entered from admin panel if any
                         k_list = [k.strip() for k in q.keywords.split(",")] if q.keywords else []
                         
-                        # AI Analizini Çağır
+                        # Call AI Analysis
                         analysis = self.ai.analyze_writing(user_text, required_keywords=k_list)
                         score = analysis["score"]
                         
+                        # Above 60 points is considered passing (for badges)
                         is_answer_correct = (score >= 60)
                     else:
                         score = 0.0
 
-            # SONUÇLARI KAYDET
-            ans.is_correct = is_answer_correct # DB'ye yaz (Yeşil/Kırmızı rozet için)
+            # SAVE RESULTS
+            ans.is_correct = is_answer_correct # Write to DB (For Green/Red badges)
             
-            # Puanları kategoriye göre topla
+            # Aggregate scores by category
             skill_key = q.skill_category or "General"
             if skill_key in scores:
                 scores[skill_key] = (scores[skill_key] + score) / 2
             else:
                 scores[skill_key] = score
                 
-        # Hiç cevap yoksa varsayılan puan
+        # If no answers, default score
         if not scores and skill_name:
             scores[skill_name.upper()] = 0.0    
         
-        # Genel puanı hesaplama
+        # --- B. CALCULATE OVERALL SCORE ---
         overall_score = self.ai.calculate_overall_score(scores)
         session.overall_score = overall_score
         session.status = "COMPLETED"
         session.end_time = datetime.now()
         
-        # Seviye Belirle
+        # Determine Level
         detected_level = "A1"
         if overall_score >= 85: detected_level = "C1"
         elif overall_score >= 70: detected_level = "B2"
@@ -186,14 +202,14 @@ class ExamService:
         elif overall_score >= 30: detected_level = "A2"
         session.detected_level = detected_level 
 
-        # Feedback güncelleme ve levelrecord
+        # --- C. UPDATE REPORT CARD AND FEEDBACK ---
         self._update_level_record(session.student_id, scores, detected_level)
 
         fb_text = self.ai.generate_feedback(scores)
         if detected_speech_text:
-            fb_text += f"\n\n🗣️ Algılanan Konuşma:\n\"{detected_speech_text}\""
+            fb_text += f"\n\n🗣️ Detected Speech:\n\"{detected_speech_text}\""
         
-        # AI Feedback'i veritabanına kaydet
+        # Save AI Feedback to database
         if hasattr(session, 'ai_feedback'):
             session.ai_feedback = fb_text
         
@@ -204,6 +220,10 @@ class ExamService:
             "feedback": fb_text,
             "breakdown": scores
         }
+
+    # =========================================================================
+    # SECTION 3: LEVEL MANAGEMENT
+    # =========================================================================
 
     def _update_level_record(self, student_id: int, scores: dict, detected_level: str):
         record = self.repo.get_level_record(student_id)
@@ -235,4 +255,4 @@ class ExamService:
         elif avg_score >= 30: final_level = "A2"
 
         record.overall_level = final_level
-        print(f"📊 Yeni Genel Seviye: {final_level} (Ortalama: {avg_score})")
+        print(f"📊 New Overall Level: {final_level} (Average: {avg_score})")

@@ -19,7 +19,7 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.user_id == user_id).first()
     
     if not user:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        raise HTTPException(status_code=404, detail="User not found")
 
     # 2. DÜZELTME: Admin Kontrolü
     # Eğer kullanıcı Admin ise istatistik hesaplamaya gerek yok, admin verisi dön.
@@ -27,11 +27,11 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         return {
             "username": user.username,
             "email": user.email,
-            "overall_level": "Yönetici",
+            "overall_level": "Administrator",
             "completed_exams": 0,
             "average_score": 0.0,
-            "completed_skills": [], # Adminin sınavı olmaz
-            "is_admin": True # Frontend admin panel butonu gösterebilir
+            "completed_skills": [], # Admin has no exams
+            "is_admin": True # Frontend can show admin panel button
         }
 
     # 3. ÖĞRENCİ İŞLEMLERİ (Mevcut kodun korunduğu yer)
@@ -85,15 +85,15 @@ def reset_user_cycle(user_id: int = Query(...), db: Session = Depends(get_db)):
     # 1. Kaydı bul
     record = db.query(LevelRecord).filter(LevelRecord.student_id == user_id).first()
     if not record:
-        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        raise HTTPException(status_code=404, detail="Record not found")
 
-    # 2. Seviyeleri Sıfırla (Böylece dashboard'daki kilitler açılır)
+    # 2. Reset Levels (This unlocks locks on dashboard)
     record.reading_level = None
     record.writing_level = None
     record.listening_level = None
     record.speaking_level = None
-    # overall_level'i sıfırlamıyoruz ki kullanıcı en son hangi seviyede kaldığını bilsin
+    # overall_level is not reset so user knows their last level
     
     db.commit()
      
-    return {"status": "reset", "msg": "Yeni sınav dönemi başlatıldı."}
+    return {"status": "reset", "msg": "New exam cycle started."}

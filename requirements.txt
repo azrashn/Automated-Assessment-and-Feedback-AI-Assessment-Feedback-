@@ -4,3 +4,10 @@ sqlalchemy
 pymysql
 pydantic
 passlib[bcrypt]
+python-multipart
+python-dotenv
+google-genai
+openai-whisper
+textstat
+spacy
+requests

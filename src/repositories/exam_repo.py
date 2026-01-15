@@ -6,7 +6,7 @@ from src.models.user import LevelRecord
 from src.models.report import FeedbackReport
 
 class ExamRepository:
-    def __init__(self, db):
+    def __init__(self, db: Session):
         self.db = db
     
     def get_level_record(self, student_id: int):

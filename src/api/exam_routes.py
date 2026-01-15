@@ -2,11 +2,23 @@ from fastapi import APIRouter, Depends, UploadFile, File, Query, HTTPException
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.services.exam_service import ExamService
-from src.schemas.exam import AnswerCreate, ExamSubmit, ReportOut
+# Yeni şemaları import ettik
+from src.schemas.exam import AnswerCreate, ExamSubmit, ReportOut, WritingInput, WritingFeedback
+# AI Modülünü import ettik
+from src.services.ai_service import AIModule
 from typing import List
 from datetime import datetime
 
 router = APIRouter()
+
+@router.post("/evaluate/writing", response_model=WritingFeedback)
+async def evaluate_writing_endpoint(data: WritingInput):
+    """
+    Gemini API kullanarak writing değerlendirmesi yapar.
+    """
+    ai_module = AIModule() # Modülü başlat
+    result = ai_module.evaluate_writing_with_gemini(data.text, data.topic, data.level)
+    return result
 
 @router.get("/start")
 def start_exam(
@@ -15,12 +27,11 @@ def start_exam(
     user_id: int = Query(...), 
     db: Session = Depends(get_db)
 ):
-    
     service = ExamService(db)
     session, questions = service.start_exam_session(user_id, skill, level)
     
     if not questions:
-        raise HTTPException(status_code=404, detail="No question found")
+        raise HTTPException(status_code=404, detail="Soru bulunamadı")
     
     remaining_seconds = 0
     if session.end_time:
@@ -66,4 +77,3 @@ def finalize_exam(payload: ExamSubmit, db: Session = Depends(get_db)):
             )
             
     return service.finalize_exam(payload.session_id, skill_name=payload.skill)
-

@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List, Optional, Dict
 
 class OptionOut(BaseModel):
     option_id: int
@@ -27,6 +28,10 @@ class ExamSubmit(BaseModel):
     answers: List[AnswerCreate] = []
     skill: str = None
 
+class ReportOut(BaseModel):
+    overall_score: float
+    feedback: str
+    breakdown: Optional[Dict[str, float]] = {}
 
 class OptionCreate(BaseModel):
     content: str
@@ -41,4 +46,6 @@ class QuestionCreate(BaseModel):
     options: List[OptionCreate] = []
 
 class ScoreOverride(BaseModel):
-    pass
+    session_id: int
+    new_score: float
+    reason: str

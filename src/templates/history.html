@@ -20,7 +20,6 @@
     }
     checkSession();
 
-    // Geri tuşu engelleme ve sayfa yenileme ayarları
     history.pushState(null, null, location.href);
     window.onpopstate = function () { history.go(1); };
     window.addEventListener("pageshow", function(event) {
@@ -31,7 +30,6 @@
   </script>
   
   <style>
-    /* --- TASARIM DEĞİŞKENLERİ --- */
     :root { 
         --bg-body:#020617; 
         --bg-card:#0f172a; 
@@ -56,7 +54,6 @@
     
     a { text-decoration: none; color: inherit; }
 
-    /* --- SIDEBAR --- */
     .sidebar {
         width: 260px; 
         background-color: var(--bg-card);
@@ -94,7 +91,6 @@
     }
     .nav-item.active { border-left: 3px solid var(--primary); background-color: var(--bg-hover); }
 
-    /* --- MAIN CONTENT --- */
     .main-content { 
         margin-left: 260px;
         padding: 2rem; 
@@ -105,7 +101,6 @@
     .page-header { margin-bottom: 2rem; }
     .page-header h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; margin-top: 0; }
 
-    /* --- TABLO TASARIMI --- */
     .table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th { background: var(--bg-hover); padding: 1rem; font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
@@ -113,7 +108,6 @@
     tr:last-child td { border-bottom: none; }
     tr:hover { background: rgba(255,255,255,0.02); }
 
-    /* BADGE STİLLERİ */
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
     .badge-reading { background:rgba(14, 165, 233, 0.15); color:#0ea5e9; }
     .badge-writing { background:rgba(168, 85, 247, 0.15); color:#a855f7; }
@@ -190,7 +184,6 @@
 <script>
     lucide.createIcons();
 
-    // Çıkış fonksiyonu (İhtiyaç olursa diye fonksiyon olarak kaldı ama butonu silindi)
     function logout() {
         if(!confirm("Çıkış yapmak istediğinize emin misiniz?")) return;
         localStorage.clear();
@@ -218,7 +211,6 @@
                 const dateObj = new Date(item.start_time);
                 const dateStr = dateObj.toLocaleDateString('tr-TR') + ' ' + dateObj.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
 
-                // Modül ve Renk Ayarı
                 const skillRaw = (item.skill || "").toLowerCase();
                 let skillLabel = skillRaw ? skillRaw.toUpperCase() : "GENEL";
                 let badgeClass = 'badge-general';
@@ -229,22 +221,18 @@
                 else if(skillRaw.includes('listen')) { badgeClass = 'badge-listening'; icon = 'headphones'; skillLabel = 'LISTENING'; }
                 else if(skillRaw.includes('speak')) { badgeClass = 'badge-speaking'; icon = 'mic'; skillLabel = 'SPEAKING'; }
 
-                // Durum Ayarı
                 let statusHtml = `<span class="status-abandoned">Yarım Kaldı</span>`;
                 if(item.status === 'COMPLETED') statusHtml = `<span class="status-completed"><i data-lucide="check" style="width:14px; vertical-align:middle;"></i> Tamamlandı</span>`;
                 if(item.status === 'EXPIRED') statusHtml = `<span class="status-expired"><i data-lucide="clock" style="width:14px; vertical-align:middle;"></i> Süre Doldu</span>`;
 
-                // Puan Rengi
                 let scoreColor = 'score-low';
                 if(item.overall_score >= 70) scoreColor = 'score-high';
                 else if(item.overall_score >= 40) scoreColor = 'score-med';
 
                 const displayScore = item.status === 'COMPLETED' ? item.overall_score.toFixed(1) : '-';
 
-                // Buton Oluşturma
                 let actionBtn = `<span style="color:var(--text-muted); font-size:0.8rem;">-</span>`;
                 if (item.status === 'COMPLETED' || item.status === 'EXPIRED') {
-                    // ID ile Analysis sayfasına yönlendirme
                     actionBtn = `<a href="analysis.html?id=${item.id}" class="btn-detail">
                                     Analiz <i data-lucide="arrow-right" style="width:14px;"></i>
                                  </a>`;

@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from src.database import get_db
 
-# Modeller
-from src.models.user import Student, LevelRecord
+from src.models.user import User, Student, LevelRecord
 from src.models.exam import ExamSession 
 
 router = APIRouter(prefix="/api/user", tags=["User"])
@@ -12,33 +11,40 @@ router = APIRouter(prefix="/api/user", tags=["User"])
 def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     """
     Dashboard için güncel verileri çeker.
-    EKLENEN ÖZELLİK: Hangi yeteneklerin tamamlandığı (completed_skills) listesi döner.
-    Böylece Frontend, biten sınavların butonunu kilitleyebilir.
+    Hem Admin hem Öğrenci için çalışır.
     """
-    # 1. Öğrenciyi Bul
-    student = db.query(Student).filter(Student.user_id == user_id).first()
-    if not student:
+    user = db.query(User).filter(User.user_id == user_id).first()
+    
+    if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
 
-    # 2. LevelRecord Tablosundan EN GÜNCEL Seviyeyi Çek
+    if user.role in ["admin", "administrator"]:
+        return {
+            "username": user.username,
+            "email": user.email,
+            "overall_level": "Yönetici",
+            "completed_exams": 0,
+            "average_score": 0.0,
+            "completed_skills": [],
+            "is_admin": True
+        }
+
+    
     record = db.query(LevelRecord).filter(LevelRecord.student_id == user_id).first()
     
-    # --- YENİ EKLENEN KISIM: Tamamlanan Modülleri Listele ---
     completed_skills = []
     current_level = "A1"
     
     if record:
         current_level = record.overall_level or "A1"
         
-        # Veritabanında notu girilmiş (None olmayan) yetenekleri listeye ekle
-        # Frontend bu listeye bakıp butonları 'Disabled' yapacak.
         if record.reading_level: completed_skills.append("reading")
         if record.writing_level: completed_skills.append("writing")
         if record.listening_level: completed_skills.append("listening")
         if record.speaking_level: completed_skills.append("speaking")
     # --------------------------------------------------------
 
-    # 3. İstatistikler (Sayı ve Ortalama)
+    # İstatistikler (Sayı ve Ortalama)
     exams = db.query(ExamSession).filter(
         ExamSession.student_id == user_id,
         ExamSession.status == "COMPLETED"
@@ -50,12 +56,13 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         avg_score = round(total / len(exams), 1)
 
     return {
-        "username": student.username,
-        "email": student.email,
+        "username": user.username,
+        "email": user.email,
         "overall_level": current_level,
         "completed_exams": len(exams),
         "average_score": avg_score,
-        "completed_skills": completed_skills # <-- Frontend burayı okuyacak
+        "completed_skills": completed_skills,
+        "is_admin": False
     }
 
 @router.post("/reset-cycle")
@@ -75,8 +82,7 @@ def reset_user_cycle(user_id: int = Query(...), db: Session = Depends(get_db)):
     record.listening_level = None
     record.speaking_level = None
     # overall_level'i sıfırlamıyoruz ki kullanıcı en son hangi seviyede kaldığını bilsin
-    # veya istersen onu da "A1" yapabilirsin. Şimdilik kalsın.
     
     db.commit()
-    
-    return {"status": "reset", "msg": "Yeni sınav dönemi başlatıldı."} 
+     
+    return {"status": "reset", "msg": "Yeni sınav dönemi başlatıldı."}

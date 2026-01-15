@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from src.models.report import ErrorReport
 
-
 class ErrorReportRepository:
-    def __init__(self, db):
+    def __init__(self, db: Session):
         self.db = db
-
+        
+    # UML: save (createReport)
     def save(self, report: ErrorReport):
         self.db.add(report) 
         self.db.commit()

@@ -18,13 +18,13 @@ router = APIRouter()
 def report_issue(rep: ErrorReportCreate, db: Session = Depends(get_db)):
     service = ErrorReportService(db)
     service.create_report(rep)
-    return {"status": "reported", "msg": "Bildirim alındı"}
+    return {"status": "reported", "msg": "Report received"}
 
 # --- 2. DASHBOARD ---
 @router.get("/dashboard/{user_id}")
 def get_dashboard_stats(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.user_id == user_id).first()
-    check_found(user, "Kullanıcı")
+    check_found(user, "User")
 
     completed_count = db.query(ExamSession).filter(
         ExamSession.student_id == user_id,
@@ -40,7 +40,7 @@ def get_dashboard_stats(user_id: int, db: Session = Depends(get_db)):
     overall_level = level_record.overall_level if level_record else "A1"
 
     return {
-        "username": user.username if hasattr(user, 'username') else "Öğrenci",
+        "username": user.username if hasattr(user, 'username') else "Student",
         "completed_exams": completed_count,
         "average_score": round(avg_score, 1),
         "overall_level": overall_level
@@ -71,10 +71,10 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     Frontend analysis.html ile uyumlu çalışacak şekilde verileri hazırlar.
     """
     session = db.query(ExamSession).get(session_id)
-    check_found(session, "Sınav oturumu")
+    check_found(session, "Exam session")
 
     if session.status not in ["COMPLETED", "EXPIRED"]:
-        raise HTTPException(status_code=403, detail="Bu sınav henüz tamamlanmadı.")
+        raise HTTPException(status_code=403, detail="This exam is not completed yet.")
 
     # Cevapları getir
     answers = db.query(Answer).options(
@@ -89,7 +89,7 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
         question = ans.question
         
         # A. Kullanıcı Cevabını Bul
-        user_answer_text = "Cevap Yok"
+        user_answer_text = "No answer"
         if ans.selected_option_id:
             # Şıklı Soru
             selected_opt = next((opt for opt in question.options if opt.option_id == ans.selected_option_id), None)
@@ -105,7 +105,7 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
         
         # B. Doğru Cevabı Bul
         correct_opt = next((opt for opt in question.options if opt.is_correct), None)
-        correct_answer_text = correct_opt.content if correct_opt else "AI Değerlendirmesi"
+        correct_answer_text = correct_opt.content if correct_opt else "AI Evaluation"
 
         # C. İstatistik
         if ans.is_correct: correct_count += 1
@@ -124,7 +124,7 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     
     # Eğer veritabanında henüz bir analiz yoksa (eski sınavlar için)
     if not feedback_text:
-        feedback_text = "Bu sınav eski tarihli olduğu için yapay zeka analizi bulunamadı. Yeni bir sınav yaparak analizi görebilirsiniz."
+        feedback_text = "This exam is old, so AI analysis is not available. You can see the analysis by taking a new exam."
 
     return {
         "date": session.end_time if session.end_time else session.last_activity,

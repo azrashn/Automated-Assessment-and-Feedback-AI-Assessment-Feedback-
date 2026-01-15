@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Kayıt Ol - AI Assessment</title>
+  <title>Sign Up - AI Assessment</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -178,8 +178,8 @@
   <div class="page-wrapper">
     <div class="register-card">
       <div class="card-header">
-        <h2>Hesap Oluştur</h2>
-        <p>Hemen katıl, seviyeni öğren ve gelişimini takip et.</p>
+        <h2>Create Account</h2>
+        <p>Join now, test your level, and track your progress.</p>
       </div>
 
       <div id="generalAlert" class="alert-box"></div>
@@ -187,50 +187,50 @@
       <form id="registerForm" novalidate>
         
         <div class="form-group">
-          <label class="form-label" for="fullname">Ad Soyad</label>
+          <label class="form-label" for="fullname">Full Name</label>
           <div class="input-wrapper">
             <i data-lucide="user" class="input-icon" size="18"></i>
-            <input type="text" id="fullname" class="form-input" placeholder="Adınız Soyadınız" required>
+            <input type="text" id="fullname" class="form-input" placeholder="Your Full Name" required>
           </div>
-          <div id="nameError" class="error-text"><i data-lucide="alert-circle" size="14"></i> İsim alanı zorunludur.</div>
+          <div id="nameError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Name field is required.</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="email">E-posta Adresi</label>
+          <label class="form-label" for="email">Email Address</label>
           <div class="input-wrapper">
             <i data-lucide="mail" class="input-icon" size="18"></i>
-            <input type="email" id="email" class="form-input" placeholder="ogrenci@okul.edu.tr" required>
+            <input type="email" id="email" class="form-input" placeholder="student@school.edu" required>
           </div>
-          <div id="emailError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Geçerli bir e-posta girin.</div>
+          <div id="emailError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Enter a valid email.</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Şifre</label>
+          <label class="form-label" for="password">Password</label>
           <div class="input-wrapper">
             <i data-lucide="lock" class="input-icon" size="18"></i>
-            <input type="password" id="password" class="form-input" placeholder="8-32 karakter arası" minlength="8" maxlength="32" required>
-            <button type="button" class="toggle-pass" id="togglePass">Göster</button>
+            <input type="password" id="password" class="form-input" placeholder="8-32 characters" minlength="8" maxlength="32" required>
+            <button type="button" class="toggle-pass" id="togglePass">Show</button>
           </div>
-          <div id="passwordError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Şifre 8-32 karakter arasında olmalıdır.</div>
+          <div id="passwordError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Password must be between 8-32 characters.</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="passwordConfirm">Şifre (Tekrar)</label>
+          <label class="form-label" for="passwordConfirm">Confirm Password</label>
           <div class="input-wrapper">
             <i data-lucide="lock-keyhole" class="input-icon" size="18"></i>
-            <input type="password" id="passwordConfirm" class="form-input" placeholder="Şifrenizi doğrulayın" required>
+            <input type="password" id="passwordConfirm" class="form-input" placeholder="Verify your password" required>
           </div>
-          <div id="passwordConfirmError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Şifreler eşleşmiyor.</div>
+          <div id="passwordConfirmError" class="error-text"><i data-lucide="alert-circle" size="14"></i> Passwords do not match.</div>
         </div>
 
         <button type="submit" class="btn-submit" id="submitBtn">
-            <span>Kayıt Ol</span>
+            <span>Sign Up</span>
             <i data-lucide="user-plus" size="18"></i>
         </button>
       </form>
 
       <div class="card-footer">
-        Zaten hesabın var mı? <a href="/login.html" class="link-accent">Giriş Yap</a>
+        Already have an account? <a href="/login.html" class="link-accent">Login</a>
       </div>
     </div>
   </div>
@@ -254,7 +254,7 @@
       const type = passEl.type === "password" ? "text" : "password";
       passEl.type = type;
       passConfEl.type = type;
-      this.textContent = type === "password" ? "Göster" : "Gizle";
+      this.textContent = type === "password" ? "Show" : "Hide";
     });
 
     function showError(elementId, show) {
@@ -282,16 +282,16 @@
       if (!isValid) return;
 
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = "Kaydediliyor...";
+      submitBtn.querySelector('span').textContent = "Registering...";
 
       const formData = {
-          fullname: nameEl.value,
+          // --- HATA BURADAYDI, DÜZELTİLDİ ---
+          username: nameEl.value, // Frontend artık 'username' olarak gönderiyor
           email: emailEl.value,
           password: passEl.value
       };
 
       try {
-          // YENİ ENDPOINT: /api/auth/register
           const response = await fetch('/api/auth/register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -300,11 +300,11 @@
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || "Kayıt başarısız.");
+            throw new Error(errorData.detail || "Registration failed.");
           }
 
           generalAlert.className = "alert-box alert-success";
-          generalAlert.innerHTML = '<i data-lucide="check-circle" size="18"></i> Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...';
+          generalAlert.innerHTML = '<i data-lucide="check-circle" size="18"></i> Registration successful! Redirecting to login page...';
           generalAlert.style.display = 'flex';
           lucide.createIcons();
           
@@ -314,12 +314,12 @@
 
       } catch (error) {
           generalAlert.className = "alert-box alert-error";
-          generalAlert.innerHTML = `<i data-lucide="alert-triangle" size="18"></i> ${error.message || 'Sunucu hatası oluştu.'}`;
+          generalAlert.innerHTML = `<i data-lucide="alert-triangle" size="18"></i> ${error.message || 'Server error occurred.'}`;
           generalAlert.style.display = 'flex';
           lucide.createIcons();
           
           submitBtn.disabled = false;
-          submitBtn.querySelector('span').textContent = "Kayıt Ol";
+          submitBtn.querySelector('span').textContent = "Sign Up";
       }
     });
   </script>

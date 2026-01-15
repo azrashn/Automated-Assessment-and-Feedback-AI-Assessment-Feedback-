@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Giriş Yap - AI Assessment</title>
+  <title>Login - AI Assessment</title>
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -178,44 +178,44 @@
   <div class="page-wrapper">
     <div class="login-card">
       <div class="card-header">
-        <h2>Hoşgeldin</h2>
-        <p>Sınavlara katılmak ve sonuçlarını görmek için giriş yap.</p>
+        <h2>Welcome</h2>
+        <p>Log in to participate in exams and view your results.</p>
       </div>
 
       <div id="alertBox" class="alert-box"></div>
 
       <form id="loginForm">
         <div class="form-group">
-          <label class="form-label" for="email">E-posta Adresi</label>
+          <label class="form-label" for="email">Email Address</label>
           <div class="input-wrapper">
             <i data-lucide="mail" class="input-icon" size="18"></i>
-            <input type="email" id="email" class="form-input" placeholder="ogrenci@okul.edu.tr" required>
+            <input type="email" id="email" class="form-input" placeholder="student@school.edu" required>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Şifre</label>
+          <label class="form-label" for="password">Password</label>
           <div class="input-wrapper">
             <i data-lucide="lock" class="input-icon" size="18"></i>
             <input type="password" id="password" class="form-input" placeholder="••••••••" minlength="3" required>
-            <button type="button" class="toggle-pass" id="togglePass">Göster</button>
+            <button type="button" class="toggle-pass" id="togglePass">Show</button>
           </div>
         </div>
 
         <button type="submit" class="btn-submit">
-            <span>Giriş Yap</span>
+            <span>Login</span>
             <i data-lucide="arrow-right" size="18"></i>
         </button>
       </form>
 
       <div class="card-footer">
-        Hesabın yok mu? <a href="/register.html" class="link-accent">Kayıt Ol</a>
+        Don't have an account? <a href="/register.html" class="link-accent">Sign Up</a>
       </div>
     </div>
   </div>
 
   <footer>
-    <p>&copy; 2025 AI Assessment System. Güvenli Sınav Modülü.</p>
+    <p>&copy; 2025 AI Assessment System. Secure Exam Module.</p>
   </footer>
 
   <script>
@@ -229,7 +229,7 @@
       const el = document.getElementById("password");
       const type = el.type === "password" ? "text" : "password";
       el.type = type;
-      this.textContent = type === "password" ? "Göster" : "Gizle";
+      this.textContent = type === "password" ? "Show" : "Hide";
     });
 
     form.addEventListener("submit", async function(e) {
@@ -237,7 +237,7 @@
       
       alertBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = "Kontrol ediliyor...";
+      submitBtn.querySelector('span').textContent = "Verifying...";
 
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -251,7 +251,7 @@
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || "Giriş başarısız.");
+            throw new Error(errorData.detail || "Login failed.");
         }
 
           const data = await response.json();
@@ -261,7 +261,7 @@
           localStorage.setItem('role', data.role);
 
           alertBox.className = 'alert-box alert-success';
-          alertBox.innerHTML = '<i data-lucide="check-circle" size="18"></i> Giriş başarılı! Yönlendiriliyorsunuz...';
+          alertBox.innerHTML = '<i data-lucide="check-circle" size="18"></i> Login successful! Redirecting...';
           alertBox.style.display = 'flex';
           lucide.createIcons();
 
@@ -274,12 +274,12 @@
       } catch (err) {
         console.error(err);
         alertBox.className = 'alert-box alert-error';
-        alertBox.innerHTML = `<i data-lucide="alert-triangle" size="18"></i> ${err.message || 'Sunucu hatası.'}`;
+        alertBox.innerHTML = `<i data-lucide="alert-triangle" size="18"></i> ${err.message || 'Server error.'}`;
         alertBox.style.display = 'flex';
         lucide.createIcons();
         
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = "Giriş Yap";
+        submitBtn.querySelector('span').textContent = "Login";
       }
     });
   </script>

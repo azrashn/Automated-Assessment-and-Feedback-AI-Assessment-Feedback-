@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -12,16 +13,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <script>
-        //  SESSION & STATUS CHECK
         function checkSession() {
-            // A. Check if user is logged in
             const userId = localStorage.getItem("user_id");
             if (!userId) {
                 window.location.replace("/login.html");
                 return false;
             }
-
-            // B. Check if exam is already completed
             const isFinished = localStorage.getItem("exam_status");
             if (isFinished === "completed") {
                 window.location.replace("/dashboard.html");
@@ -29,29 +26,20 @@
             }
             return true;
         }
-
-        // Run check immediately on load
         checkSession();
 
-        // HANDLE BROWSER BACK BUTTON CACHE 
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () { history.go(1); };
+
         window.addEventListener("pageshow", function(event) {
-            // If page is loaded from back-forward cache, force reload
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
                 window.location.reload();
             }
         });
-
-        //  HISTORY TRAP 
-        // Pushes a dummy state to history so back button stays on page
-        history.pushState(null, null, location.href);
-        window.onpopstate = function () {
-            history.go(1);
-        };
     </script>
 
   <style>
-    /* TEMEL TASARIM */
-    :root { --bg-body:#020617; --bg-card:#0f172a; --bg-hover:#1e293b; --text-main:#f8fafc; --text-muted:#94a3b8; --primary:#4f46e5; --primary-hover:#4338ca; --border-color:#334155; --danger:#ef4444; --accent:#0ea5e9; }
+    :root { --bg-body:#020617; --bg-card:#0f172a; --bg-hover:#1e293b; --text-main:#f8fafc; --text-muted:#94a3b8; --primary:#4f46e5; --primary-hover:#4338ca; --border-color:#334155; --danger:#ef4444; --accent:#0ea5e9; --success:#22c55e; }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; margin:0; }
     
     header { height: 70px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; background: var(--bg-card); }
@@ -63,7 +51,6 @@
     .q-meta { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
     .q-text { font-size: 1.25rem; font-weight: 500; margin-bottom: 2rem; line-height: 1.6; }
     
-    /* SES OYNATICI (Listening) */
     .audio-player-box { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
     .player-header { display: flex; justify-content: space-between; align-items: center; }
     .play-counter { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 20px; }
@@ -73,7 +60,6 @@
     .custom-play-btn:hover { background: var(--primary-hover); }
     .custom-play-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
 
-    /* SPEAKING KAYIT STİLİ */
     .record-box { text-align: center; padding: 2rem; border: 2px dashed var(--border-color); border-radius: 12px; background: var(--bg-hover); }
     .record-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--danger); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; transition: 0.2s; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.2); }
     .record-btn:hover { transform: scale(1.05); }
@@ -81,14 +67,12 @@
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     .status-text { font-size: 1rem; font-weight: 500; color: var(--text-main); margin-bottom: 0.5rem; }
 
-    /* WRITING STİLLERİ */
     .writing-wrapper { display: flex; flex-direction: column; gap: 10px; }
     .security-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
     .exam-textarea { width: 100%; height: 250px; background: var(--bg-body); border: 1px solid var(--border-color); color: white; padding: 1rem; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; resize: vertical; }
     .exam-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
     .word-counter { text-align: right; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
 
-    /* ŞIKLAR */
     .options-grid { display: grid; gap: 1rem; }
     .option-btn { width: 100%; text-align: left; padding: 1rem; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
     .option-btn:hover { border-color: var(--primary); color: white; background: rgba(79, 70, 229, 0.05); }
@@ -97,9 +81,104 @@
     .option-btn.selected .option-circle { border-color: white; background: white; color: var(--primary); }
 
     .footer-bar { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); }
-    .btn-next { background: var(--primary); color: white; padding: 0.8rem 2rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .btn-next:hover { background-color: #4338ca; }
-    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-nav { 
+        background: var(--primary); 
+        color: white; 
+        padding: 0.8rem 2rem; 
+        border-radius: 8px; 
+        border: none; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: 0.2s; 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-size: 1rem;
+    }
+    
+    .btn-nav:hover { 
+        background-color: var(--primary-hover); 
+        transform: translateY(-2px); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); 
+    }
+    
+    .btn-nav:disabled { 
+        opacity: 0; 
+        pointer-events: none; 
+    }
+
+    .btn-finish {
+        background-color: var(--success) !important;
+    }
+    .btn-finish:hover {
+        background-color: #16a34a !important; 
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .btn-report {
+        background: rgba(234, 179, 8, 0.1); 
+        color: var(--accent-yellow, #eab308);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+        margin-right: 15px;
+        font-size: 0.9rem;
+    }
+    .btn-report:hover {
+        background: var(--accent-yellow, #eab308);
+        color: #000;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 3000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+        background: var(--bg-card);
+        width: 90%; max-width: 500px;
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); display:flex; align-items:center; gap:10px; }
+    .btn-close { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem; }
+    
+    .form-group { margin-bottom: 1.2rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+    .form-select, .form-textarea {
+        width: 100%; padding: 10px;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        font-family: inherit;
+        outline: none;
+    }
+    .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+    .btn-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .btn-send { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-send:hover { background: var(--primary-hover); }
 
   </style>
 </head>
@@ -110,7 +189,14 @@
         <i id="moduleIcon" data-lucide="book-open" style="color:var(--primary);"></i>
         <span id="moduleName">Yükleniyor...</span>
     </div>
-    <div class="timer-badge" id="timer">00:00</div>
+
+    <div style="display:flex; align-items:center;">
+        <button class="btn-report" onclick="openReportModal()">
+            <i data-lucide="flag" style="width:16px;"></i> Sorun Bildir
+        </button>
+        
+        <div class="timer-badge" id="timer">00:00</div>
+    </div>
 </header>
 
 <div class="exam-container">
@@ -122,20 +208,63 @@
     </div>
 </div>
 
+<div id="reportModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">
+                <i data-lucide="alert-triangle" style="color:#eab308"></i>
+                Sorun Bildir
+            </div>
+            <button class="btn-close" onclick="closeReportModal()">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Sorun Türü</label>
+            <select id="issueType" class="form-select">
+                <option value="Audio Issue">Ses Çalmıyor / Duyulmuyor</option>
+                <option value="Image Issue">Görüntü / Soru Yüklenmedi</option>
+                <option value="Microphone Issue">Mikrofon Çalışmıyor</option>
+                <option value="Typing Issue">Yazı Yazılamıyor</option>
+                <option value="Other">Diğer Teknik Sorun</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Detaylı Açıklama</label>
+            <textarea id="issueDesc" class="form-textarea" rows="4" placeholder="Lütfen yaşadığınız sorunu kısaca anlatın..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeReportModal()">İptal</button>
+            <button class="btn-send" onclick="submitReport()">Gönder</button>
+        </div>
+    </div>
+</div>
+
 <footer class="footer-bar">
+    <button class="btn-nav" id="prevBtn" onclick="prevQuestion()">
+        <i data-lucide="arrow-left" style="width:20px;"></i> 
+        <span>Önceki</span>
+    </button>
+
     <div style="color:var(--text-muted);">Soru <span id="currentQ" style="color:white; font-weight:bold;">-</span> / <span id="totalQ">-</span></div>
-    <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Sonraki Soru</button>
+    
+    <button class="btn-nav" id="nextBtn" onclick="nextQuestion()">
+        <span>Sonraki Soru</span> 
+        <i data-lucide="arrow-right" style="width:20px;"></i>
+    </button>
 </footer>
 
 <script>
     lucide.createIcons();
     
-    // DEĞİŞKENLER 
     let questions = [];
     let currentQIndex = 0;
     let userAnswers = {}; 
-    let currentPlayCount = 0;
+    let audioCounts = {}; 
     let sessionId = 0;
+    let timerInterval;
+    let isSubmitting = false;
     
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat') || 'reading';
@@ -144,7 +273,6 @@
 
     if(!userId) window.location.href = '/login.html';
 
-    // Header Başlığı
     document.getElementById('moduleName').textContent = category.toUpperCase() + " MODÜLÜ (" + level + ")";
     if(category === 'listening') document.getElementById('moduleIcon').setAttribute('data-lucide', 'headphones');
     if(category === 'writing') document.getElementById('moduleIcon').setAttribute('data-lucide', 'pen-tool');
@@ -152,47 +280,37 @@
     lucide.createIcons();
 
     function formatTime(seconds) {
-        if (!seconds || isNaN(seconds) || seconds === Infinity || seconds < 0) return "00:00";
+        if (!seconds || isNaN(seconds) || seconds < 0) return "00:00";
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
         return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }
 
     function enableSecurity() {
-        // GERİ TUŞU ENGELLEME  Sayfa geçmişine sürekli mevcut sayfayı itiyoruz.
         history.pushState(null, null, location.href);
-        window.onpopstate = function () {
-            history.go(1);
-        };
-
-        // SAYFADAN AYRILMA UYARISI  Yenileme, Kapatma veya Linke tıklama durumunda uyarır
+        window.onpopstate = function () { history.go(1); };
         window.onbeforeunload = function() {
-            return "Sınav devam ediyor. Ayrılırsanız sınavınız sonlanabilir.";
+            if (!isSubmitting) return "Sınav devam ediyor.";
         };
-
-        // SAĞ TIK ve SEÇİM ENGELLEME 
-        document.addEventListener('contextmenu', event => event.preventDefault()); // Sağ tık kapatır
-        document.addEventListener('copy', event => event.preventDefault());        // Kopyalama kapatır
-        document.addEventListener('paste', event => event.preventDefault());       // Yapıştırma kapatır
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('paste', event => event.preventDefault());
     }
 
-    // Güvenliği kaldır (Sınav bitince çalışır)
     function disableSecurity() {
         window.onbeforeunload = null;
+        isSubmitting = true;
     }
 
-    // SORULARI YÜKLE VE SINAVI BAŞLAT
     async function loadQuestions() {
         try {
-            // Güvenlik Önlemlerini Aktif Et
             enableSecurity();
 
             const res = await fetch(`http://127.0.0.1:8000/api/exam/start?user_id=${userId}&level=${level}&skill=${category}`);
-            
             if(!res.ok) {
                  const errData = await res.json();
                  if(res.status === 400 && errData.detail.includes("zaten")) {
-                     disableSecurity(); // Hata varsa güvenliği kaldır ki çıkabilsin
+                     disableSecurity();
                      alert(errData.detail);
                      window.location.href = "/dashboard.html";
                      return;
@@ -204,16 +322,16 @@
             sessionId = data.session_id; 
             const serverRemainingSeconds = data.remaining_seconds;
 
-            // KALINAN YERİ YÜKLEME
             const savedData = getProgress();
             
             if (savedData && savedData.questions && savedData.questions.length > 0) {
-                console.log("♻️ Eski oturum verisi geri yüklendi.");
+                console.log("Eski oturum yüklendi.");
                 questions = savedData.questions;
                 currentQIndex = savedData.index || 0;
                 userAnswers = savedData.answers || {};
+                audioCounts = savedData.audioCounts || {};
             } else {
-                console.log("🆕 Yeni sorular yüklendi.");
+                console.log("Yeni sorular yüklendi.");
                 questions = data.questions; 
                 saveProgress(); 
             }
@@ -222,55 +340,79 @@
 
             document.getElementById('totalQ').innerText = questions.length;
             showQuestion(currentQIndex);
+            
             startTimer(serverRemainingSeconds); 
 
         } catch (err) {
             disableSecurity();
             document.getElementById('questionArea').innerHTML = `<div style="text-align:center; padding:2rem; color:red;">${err.message}</div>`;
-            document.getElementById('nextBtn').disabled = true;
             setTimeout(() => { window.location.href = "/dashboard.html"; }, 3000);
         }
     }
 
+    function startTimer(seconds) {
+        const timerEl = document.getElementById('timer');
+        let rem = seconds;
+        timerEl.innerText = formatTime(rem);
+
+        timerInterval = setInterval(() => {
+            rem--;
+            timerEl.innerText = formatTime(rem);
+            if(rem <= 0) {
+                clearInterval(timerInterval);
+                disableSecurity();
+                forceFinish();
+            }
+        }, 1000);
+    }
+
     function saveProgress() {
         if(!sessionId) return;
-        const storageKey = `exam_session_${sessionId}`;
-        const state = {
+        localStorage.setItem(`exam_session_${sessionId}`, JSON.stringify({
             questions: questions, 
             index: currentQIndex,
-            answers: userAnswers
-        };
-        localStorage.setItem(storageKey, JSON.stringify(state));
+            answers: userAnswers,
+            audioCounts: audioCounts
+        }));
     }
-
+    
     function getProgress() {
         if(!sessionId) return null;
-        const storageKey = `exam_session_${sessionId}`;
-        const saved = localStorage.getItem(storageKey);
-        return saved ? JSON.parse(saved) : null;
+        return JSON.parse(localStorage.getItem(`exam_session_${sessionId}`));
     }
-
+    
     function clearProgress() {
         if(!sessionId) return;
-        const storageKey = `exam_session_${sessionId}`;
-        localStorage.removeItem(storageKey);
+        localStorage.removeItem(`exam_session_${sessionId}`);
     }
 
-    // SORUYU GÖSTER 
     function showQuestion(index) {
         const q = questions[index];
         const card = document.getElementById('questionArea');
         document.getElementById('currentQ').innerText = index + 1;
-        currentPlayCount = 0;
 
+        const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        if (index === questions.length - 1) {
-            nextBtn.innerText = "Sınavı Bitir";
-            nextBtn.style.background = "#22c55e";
+
+        if (index === 0) {
+            prevBtn.disabled = true;
         } else {
-            nextBtn.innerText = "Sonraki Soru";
-            nextBtn.style.background = "var(--primary)";
+            prevBtn.disabled = false;
         }
+
+        nextBtn.classList.remove('btn-finish');
+        nextBtn.style.backgroundColor = "";
+
+        if (index === questions.length - 1) {
+            nextBtn.innerHTML = '<span>Sınavı Bitir</span> <i data-lucide="check-circle" style="width:20px;"></i>';
+            nextBtn.classList.add('btn-finish');
+            nextBtn.onclick = finishExamConfirm;
+        } else {
+            nextBtn.innerHTML = '<span>Sonraki Soru</span> <i data-lucide="arrow-right" style="width:20px;"></i>';
+            nextBtn.onclick = nextQuestion;
+        }
+        
+        lucide.createIcons();
 
         let contentHtml = '';
 
@@ -313,18 +455,29 @@
 
         let mediaHtml = '';
         if (q.media_url && category === 'listening') {
-            const audioPath = `http://127.0.0.1:8000${q.media_url}`; 
+            const audioPath = `http://127.0.0.1:8000${q.media_url}`;
+            const played = audioCounts[q.question_id] || 0;
+            const remains = 2 - played;
+            
+            let btnState = '';
+            let btnText = '<i data-lucide="play" style="width:16px;"></i> Oynat';
+            
+            if (remains <= 0) {
+                btnState = 'disabled';
+                btnText = '<i data-lucide="lock" style="width:16px;"></i> Hak Doldu';
+            }
+
             mediaHtml = `
                 <div class="audio-player-box">
                     <div class="player-header">
                         <span style="font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
                             <i data-lucide="play-circle"></i> Dinleme Kaydı
                         </span>
-                        <span id="playCounter" class="play-counter">Kalan Hak: 2</span>
+                        <span id="playCounter" class="play-counter">Kalan Hak: ${remains}</span>
                     </div>
                     <audio id="audioPlayer" style="display:none;" preload="metadata"><source src="${audioPath}" type="audio/mpeg"></audio>
                     <div style="display:flex; align-items:center; gap:1rem; margin-top:1rem;">
-                        <button id="customPlayBtn" class="custom-play-btn" onclick="playAudioSafe()"><i data-lucide="play" style="width:16px;"></i> Oynat</button>
+                        <button id="customPlayBtn" class="custom-play-btn" onclick="playAudioSafe()" ${btnState}>${btnText}</button>
                         <div class="progress-track"><div id="audioProgress" class="progress-fill"></div></div>
                         <span id="timeDisplay" style="font-size:0.8rem; color:var(--text-muted); min-width:80px; text-align:right;">00:00 / 00:00</span>
                     </div>
@@ -361,7 +514,15 @@
             saveProgress();
             showQuestion(currentQIndex);
         } else {
-            finishExam();
+            finishExamConfirm();
+        }
+    }
+
+    window.prevQuestion = function() {
+        if (currentQIndex > 0) {
+            currentQIndex--;
+            saveProgress();
+            showQuestion(currentQIndex);
         }
     }
 
@@ -444,7 +605,10 @@
         audio.addEventListener('loadedmetadata', updateTime);
         
         audio.addEventListener('ended', () => {
-            if (currentPlayCount < 2) {
+            const qId = questions[currentQIndex].question_id;
+            const played = audioCounts[qId] || 0;
+
+            if (played < 2) {
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="rotate-cw"></i> Tekrar';
                 btn.style.background = "var(--primary)";
@@ -459,30 +623,46 @@
     }
 
     window.playAudioSafe = function() {
-        const audio = document.getElementById('audioPlayer');
-        const btn = document.getElementById('customPlayBtn');
-        const counterText = document.getElementById('playCounter');
+        const qId = questions[currentQIndex].question_id;
+        const played = audioCounts[qId] || 0;
 
-        if (currentPlayCount >= 2) { alert("Hakkınız doldu."); return; }
+        if (played >= 2) { alert("Hakkınız doldu."); return; }
 
-        currentPlayCount++;
-        const remains = 2 - currentPlayCount;
-        counterText.innerText = `Kalan Hak: ${remains}`;
+        audioCounts[qId] = played + 1;
+        saveProgress(); 
+
+        const remains = 2 - audioCounts[qId];
+        document.getElementById('playCounter').innerText = `Kalan Hak: ${remains}`;
         
+        const audio = document.getElementById('audioPlayer');
         audio.play();
+        
+        const btn = document.getElementById('customPlayBtn');
         btn.disabled = true;
         btn.innerHTML = '<i data-lucide="volume-2"></i>';
         lucide.createIcons();
     }
 
-    async function finishExam() {
-        if(!confirm("Sınavı bitirmek istediğinize emin misiniz?")) return;
+    function finishExamConfirm() {
+        if(confirm("Sınavı bitirmek istediğinize emin misiniz?")) {
+            submitExam();
+        }
+    }
 
-        disableSecurity(); // Sınav bittiği için güvenliği kapat
+    function forceFinish() {
+        alert("Süre doldu! Sınavınız otomatik olarak sonlandırılıyor.");
+        submitExam();
+    }
+
+    async function submitExam() {
+        disableSecurity();
+        clearInterval(timerInterval);
         
         const submitBtn = document.getElementById('nextBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Kaydediliyor...";
+        if(submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Kaydediliyor...";
+        }
 
         const answersPayload = Object.keys(userAnswers).map(qId => {
             const val = userAnswers[qId];
@@ -509,59 +689,73 @@
             }
             
             const result = await res.json();
-            
             clearProgress();
             
-            let msg = `Sınav Bitti!\nPuan: ${result.overall_score}`;
-            if(result.feedback) msg += `\n\n🤖 Analiz:\n${result.feedback}`;
-            alert(msg);
-            window.location.href = "/dashboard.html";
+            window.location.replace(`/analysis.html?id=${sessionId}`);
 
         } catch (err) {
             alert("Hata: " + err.message);
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Tekrar Dene";
+            isSubmitting = false;
+            if(submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Tekrar Dene";
+            }
+        }
+    }
+    
+    function openReportModal() {
+        document.getElementById('reportModal').classList.add('active');
+    }
+
+    function closeReportModal() {
+        document.getElementById('reportModal').classList.remove('active');
+        document.getElementById('issueDesc').value = ''; // Temizle
+    }
+
+    async function submitReport() {
+        const type = document.getElementById('issueType').value;
+        const desc = document.getElementById('issueDesc').value;
+        const uId = localStorage.getItem('user_id');
+
+        if(!desc.trim()) {
+            alert("Lütfen bir açıklama yazın.");
+            return;
+        }
+
+        const btn = document.querySelector('.btn-send');
+        btn.innerText = "Gönderiliyor...";
+        btn.disabled = true;
+
+        try {
+            const payload = {
+                student_id: parseInt(uId),
+                issue_type: type,
+                description: desc
+            };
+
+            const res = await fetch('http://127.0.0.1:8000/api/report/issue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                alert("Bildiriminiz yöneticiye iletildi. Teşekkürler.");
+                closeReportModal();
+            } else {
+                alert("Bildirim gönderilemedi. Lütfen tekrar deneyin.");
+            }
+
+        } catch(err) {
+            console.error(err);
+            alert("Sunucu hatası.");
+        } finally {
+            btn.innerText = "Gönder";
+            btn.disabled = false;
         }
     }
 
-    function startTimer(seconds) {
-        const timerEl = document.getElementById('timer');
-        let rem = seconds;
-        timerEl.innerText = formatTime(rem);
-
-        const interval = setInterval(() => {
-            if(rem <= 0) {
-                clearInterval(interval);
-                disableSecurity(); // Süre bitince de güvenlik kapansın
-                alert("Süre doldu!");
-                finishExam(); 
-                return;
-            }
-            rem--;
-            timerEl.innerText = formatTime(rem);
-        }, 1000);
-    }
-
-    function completeExam() {
-    // 1. Mark exam as completed in storage
-    localStorage.setItem("exam_status", "completed");
-    
-    // 2. Redirect to Dashboard 
-    window.location.replace("/dashboard.html");
-    }  
-
-    // Sayfa yüklendiğinde geçmişe sahte bir durum ekle
-    history.pushState(null, null, location.href);
-
-    // Kullanıcı Geri tuşuna bastığında tetiklenir
-    window.onpopstate = function () {
-    // Onu tekrar ileri (şu anki sayfaya) it
-    history.go(1);
-    };
-
     loadQuestions();
-
 </script>
-
 </body>
 </html>

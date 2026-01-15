@@ -187,12 +187,12 @@
 <header>
     <div style="font-weight:700; display:flex; gap:10px; align-items:center;">
         <i id="moduleIcon" data-lucide="book-open" style="color:var(--primary);"></i>
-        <span id="moduleName">Yükleniyor...</span>
+        <span id="moduleName">Loading...</span>
     </div>
 
     <div style="display:flex; align-items:center;">
         <button class="btn-report" onclick="openReportModal()">
-            <i data-lucide="flag" style="width:16px;"></i> Sorun Bildir
+            <i data-lucide="flag" style="width:16px;"></i> Report an Issue
         </button>
         
         <div class="timer-badge" id="timer">00:00</div>
@@ -203,7 +203,7 @@
     <div class="question-card" id="questionArea">
         <div style="text-align:center; color:var(--text-muted); padding: 2rem;">
             <i data-lucide="loader-2" class="animate-spin" style="width: 32px; height: 32px; margin-bottom: 1rem;"></i>
-            <p>Sorular sunucudan çekiliyor...</p>
+            <p>Questions are being fetched from the server...</p>
         </div>
     </div>
 </div>
@@ -213,30 +213,30 @@
         <div class="modal-header">
             <div class="modal-title">
                 <i data-lucide="alert-triangle" style="color:#eab308"></i>
-                Sorun Bildir
+                Report an Issue
             </div>
             <button class="btn-close" onclick="closeReportModal()">&times;</button>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Sorun Türü</label>
+            <label class="form-label">Type of Issue</label>
             <select id="issueType" class="form-select">
-                <option value="Audio Issue">Ses Çalmıyor / Duyulmuyor</option>
-                <option value="Image Issue">Görüntü / Soru Yüklenmedi</option>
-                <option value="Microphone Issue">Mikrofon Çalışmıyor</option>
-                <option value="Typing Issue">Yazı Yazılamıyor</option>
-                <option value="Other">Diğer Teknik Sorun</option>
+                <option value="Audio Issue">No Sound / Not Audible</option>
+                <option value="Image Issue">Image / Question Not Loaded</option>
+                <option value="Microphone Issue">Microphone Not Working</option>
+                <option value="Typing Issue">Cannot write text</option>
+                <option value="Other">Other Technical Issues</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Detaylı Açıklama</label>
-            <textarea id="issueDesc" class="form-textarea" rows="4" placeholder="Lütfen yaşadığınız sorunu kısaca anlatın..."></textarea>
+            <label class="form-label">Detailed Explanation</label>
+            <textarea id="issueDesc" class="form-textarea" rows="4" placeholder="Please briefly describe your issue..."></textarea>
         </div>
 
         <div class="modal-footer">
-            <button class="btn-cancel" onclick="closeReportModal()">İptal</button>
-            <button class="btn-send" onclick="submitReport()">Gönder</button>
+            <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
+            <button class="btn-send" onclick="submitReport()">Send</button>
         </div>
     </div>
 </div>
@@ -244,13 +244,13 @@
 <footer class="footer-bar">
     <button class="btn-nav" id="prevBtn" onclick="prevQuestion()">
         <i data-lucide="arrow-left" style="width:20px;"></i> 
-        <span>Önceki</span>
+        <span>Previous</span>
     </button>
 
-    <div style="color:var(--text-muted);">Soru <span id="currentQ" style="color:white; font-weight:bold;">-</span> / <span id="totalQ">-</span></div>
+    <div style="color:var(--text-muted);">Question <span id="currentQ" style="color:white; font-weight:bold;">-</span> / <span id="totalQ">-</span></div>
     
     <button class="btn-nav" id="nextBtn" onclick="nextQuestion()">
-        <span>Sonraki Soru</span> 
+        <span>Next Question</span> 
         <i data-lucide="arrow-right" style="width:20px;"></i>
     </button>
 </footer>
@@ -309,13 +309,13 @@
             const res = await fetch(`http://127.0.0.1:8000/api/exam/start?user_id=${userId}&level=${level}&skill=${category}`);
             if(!res.ok) {
                  const errData = await res.json();
-                 if(res.status === 400 && errData.detail.includes("zaten")) {
+                 if(res.status === 400 && errData.detail.includes("already")) {
                      disableSecurity();
                      alert(errData.detail);
                      window.location.href = "/dashboard.html";
                      return;
                  }
-                 throw new Error(errData.detail || "Soru bulunamadı.");
+                 throw new Error(errData.detail || "No question found.");
             }
             
             const data = await res.json();
@@ -325,18 +325,18 @@
             const savedData = getProgress();
             
             if (savedData && savedData.questions && savedData.questions.length > 0) {
-                console.log("Eski oturum yüklendi.");
+                console.log("The old session has been loaded.");
                 questions = savedData.questions;
                 currentQIndex = savedData.index || 0;
                 userAnswers = savedData.answers || {};
                 audioCounts = savedData.audioCounts || {};
             } else {
-                console.log("Yeni sorular yüklendi.");
+                console.log("New questions have been uploaded.");
                 questions = data.questions; 
                 saveProgress(); 
             }
 
-            if(questions.length === 0) throw new Error("Soru bulunamadı.");
+            if(questions.length === 0) throw new Error("No question found.");
 
             document.getElementById('totalQ').innerText = questions.length;
             showQuestion(currentQIndex);
@@ -404,11 +404,11 @@
         nextBtn.style.backgroundColor = "";
 
         if (index === questions.length - 1) {
-            nextBtn.innerHTML = '<span>Sınavı Bitir</span> <i data-lucide="check-circle" style="width:20px;"></i>';
+            nextBtn.innerHTML = '<span>Finish the exam</span> <i data-lucide="check-circle" style="width:20px;"></i>';
             nextBtn.classList.add('btn-finish');
             nextBtn.onclick = finishExamConfirm;
         } else {
-            nextBtn.innerHTML = '<span>Sonraki Soru</span> <i data-lucide="arrow-right" style="width:20px;"></i>';
+            nextBtn.innerHTML = '<span>Next Question</span> <i data-lucide="arrow-right" style="width:20px;"></i>';
             nextBtn.onclick = nextQuestion;
         }
         
@@ -426,7 +426,7 @@
                         ${isAnswered ? '<i data-lucide="check"></i>' : '<i data-lucide="mic"></i>'}
                     </button>
                     <div class="status-text" id="status_${q.question_id}" style="${isAnswered ? 'color:#22c55e' : ''}">
-                        ${isAnswered ? 'Kayıt Yüklendi.' : 'Kayda başlamak için mikrofona dokunun'}
+                        ${isAnswered ? 'Recording Uploaded.' : 'Tap the microphone to start recording'}
                     </div>
                 </div>`;
         }
@@ -446,10 +446,10 @@
             const wordCount = savedText.trim() === '' ? 0 : savedText.trim().split(/\s+/).length;
             contentHtml = `
                 <div class="writing-wrapper">
-                    <div class="security-badge"><i data-lucide="shield-alert" style="width:16px;"></i> Güvenlik Modu: Kopyala/Yapıştır Yasak (FR-19)</div>
-                    <textarea class="exam-textarea" placeholder="Kompozisyonunuzu buraya yazın..."
+                    <div class="security-badge"><i data-lucide="shield-alert" style="width:16px;"></i> Safety Mode: Copy/Paste Prohibited (FR-19)</div>
+                    <textarea class="exam-textarea" placeholder="Write your essay here..."
                      oninput="handleWritingInput(${q.question_id}, this)">${savedText}</textarea>
-                    <div class="word-counter">Kelime: <span id="wCount_${q.question_id}" style="color:var(--primary);">${wordCount}</span></div>
+                    <div class="word-counter">Word: <span id="wCount_${q.question_id}" style="color:var(--primary);">${wordCount}</span></div>
                 </div>`;
         }
 
@@ -460,20 +460,20 @@
             const remains = 2 - played;
             
             let btnState = '';
-            let btnText = '<i data-lucide="play" style="width:16px;"></i> Oynat';
+            let btnText = '<i data-lucide="play" style="width:16px;"></i> Play';
             
             if (remains <= 0) {
                 btnState = 'disabled';
-                btnText = '<i data-lucide="lock" style="width:16px;"></i> Hak Doldu';
+                btnText = '<i data-lucide="lock" style="width:16px;"></i> The Rights Are Filled';
             }
 
             mediaHtml = `
                 <div class="audio-player-box">
                     <div class="player-header">
                         <span style="font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="play-circle"></i> Dinleme Kaydı
+                            <i data-lucide="play-circle"></i> Listening Record
                         </span>
-                        <span id="playCounter" class="play-counter">Kalan Hak: ${remains}</span>
+                        <span id="playCounter" class="play-counter">Remaining Rights: ${remains}</span>
                     </div>
                     <audio id="audioPlayer" style="display:none;" preload="metadata"><source src="${audioPath}" type="audio/mpeg"></audio>
                     <div style="display:flex; align-items:center; gap:1rem; margin-top:1rem;">
@@ -485,7 +485,7 @@
         }
 
         card.innerHTML = `
-            <div class="q-meta"><span>Zorluk: ${level}</span><span>Puan: 10</span></div>
+            <div class="q-meta"><span>Difficulty: ${level}</span><span>Puan: 10</span></div>
             ${mediaHtml}
             <div class="q-text">${q.text}</div>
             ${contentHtml}
@@ -548,16 +548,16 @@
                 isRecording = true;
                 btn.classList.add('recording');
                 btn.innerHTML = '<i data-lucide="square" style="width:32px; height:32px;"></i>';
-                statusText.innerText = "Kaydediliyor...";
+                statusText.innerText = "Recording...";
                 statusText.style.color = "#ef4444";
                 lucide.createIcons();
-            } catch (err) { alert("Mikrofon izni gerekli!"); }
+            } catch (err) { alert("Microphone permission required!"); }
         } else {
             mediaRecorder.stop();
             isRecording = false;
             btn.classList.remove('recording');
             btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i>';
-            statusText.innerText = "Yükleniyor...";
+            statusText.innerText = "Loading...";
             lucide.createIcons();
         }
     }
@@ -581,7 +581,7 @@
             lucide.createIcons();
             saveProgress();
         } catch (err) { 
-            alert("Ses yüklenirken hata oluştu."); 
+            alert("An error occurred while loading the audio."); 
             const btn = document.getElementById(`recBtn_${qId}`);
             btn.innerHTML = '<i data-lucide="mic"></i>';
             lucide.createIcons();
@@ -626,13 +626,13 @@
         const qId = questions[currentQIndex].question_id;
         const played = audioCounts[qId] || 0;
 
-        if (played >= 2) { alert("Hakkınız doldu."); return; }
+        if (played >= 2) { alert("Your time is up."); return; }
 
         audioCounts[qId] = played + 1;
         saveProgress(); 
 
         const remains = 2 - audioCounts[qId];
-        document.getElementById('playCounter').innerText = `Kalan Hak: ${remains}`;
+        document.getElementById('playCounter').innerText = `Remaining Rights:: ${remains}`;
         
         const audio = document.getElementById('audioPlayer');
         audio.play();
@@ -644,13 +644,13 @@
     }
 
     function finishExamConfirm() {
-        if(confirm("Sınavı bitirmek istediğinize emin misiniz?")) {
+        if(confirm("Are you sure you want to finish the exam?")) {
             submitExam();
         }
     }
 
     function forceFinish() {
-        alert("Süre doldu! Sınavınız otomatik olarak sonlandırılıyor.");
+        alert("Time's up! Your exam is being automatically ended.");
         submitExam();
     }
 
@@ -661,7 +661,7 @@
         const submitBtn = document.getElementById('nextBtn');
         if(submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerText = "Kaydediliyor...";
+            submitBtn.innerText = "Recording...";
         }
 
         const answersPayload = Object.keys(userAnswers).map(qId => {
@@ -685,7 +685,7 @@
             
             if(!res.ok) {
                 const errData = await res.json();
-                throw new Error(errData.detail || "Kayıt hatası");
+                throw new Error(errData.detail || "Registration error");
             }
             
             const result = await res.json();
@@ -718,12 +718,12 @@
         const uId = localStorage.getItem('user_id');
 
         if(!desc.trim()) {
-            alert("Lütfen bir açıklama yazın.");
+            alert("Please write an explanation.");
             return;
         }
 
         const btn = document.querySelector('.btn-send');
-        btn.innerText = "Gönderiliyor...";
+        btn.innerText = "Sending...";
         btn.disabled = true;
 
         try {
@@ -740,17 +740,17 @@
             });
 
             if(res.ok) {
-                alert("Bildiriminiz yöneticiye iletildi. Teşekkürler.");
+                alert("Your report has been forwarded to the manager. Thank you.");
                 closeReportModal();
             } else {
-                alert("Bildirim gönderilemedi. Lütfen tekrar deneyin.");
+                alert("The notification could not be sent. Please try again.");
             }
 
         } catch(err) {
             console.error(err);
-            alert("Sunucu hatası.");
+            alert("Server error.");
         } finally {
-            btn.innerText = "Gönder";
+            btn.innerText = "Send";
             btn.disabled = false;
         }
     }

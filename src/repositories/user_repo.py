@@ -6,7 +6,8 @@ from src.schemas.auth import UserCreate
 class UserRepository:
     def __init__(self, db: Session):
         self.db = db
-
+    
+    # DÜZELTME: User + Student + LevelRecord tek seferde oluşturulmalı
     def create_student(self, user_data: UserCreate, hashed_password: str, student_number: str):
         # Student nesnesi oluşturduğumuzda User tablosu OTOMATİK dolar.
         new_student = Student(
@@ -35,12 +36,24 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(new_student)
         return new_student
-
+    
     def check_email(self, email: str) -> bool:
         return self.db.query(User).filter(User.email == email).first() is not None
-
+    
     def find_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
-
+    
     def find_user_by_id(self, uid: int):
         return self.db.query(User).get(uid)
+    
+    # --- ADMIN EKLENTİLERİ ---
+    def get_all_users(self):
+        return self.db.query(User).order_by(User.user_id.desc()).all()
+
+    def delete_user(self, user_id: int):
+        user = self.db.query(User).get(user_id)
+        if user:
+            self.db.delete(user)
+            self.db.commit()
+            return True
+        return False

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from src.database import get_db
 
+# Modeller
 from src.models.exam import ExamSession, Answer, Question, QuestionOption
 from src.models.user import User, LevelRecord 
 
@@ -12,17 +13,16 @@ from src.utils.error_handler import check_found
 
 router = APIRouter()
 
-# 1. HATA BİLDİRİMİ
+# --- 1. HATA BİLDİRİMİ ---
 @router.post("/issue")
 def report_issue(rep: ErrorReportCreate, db: Session = Depends(get_db)):
     service = ErrorReportService(db)
     service.create_report(rep)
     return {"status": "reported", "msg": "Bildirim alındı"}
 
-# 2. DASHBOARD 
+# --- 2. DASHBOARD ---
 @router.get("/dashboard/{user_id}")
 def get_dashboard_stats(user_id: int, db: Session = Depends(get_db)):
-
     user = db.query(User).filter(User.user_id == user_id).first()
     check_found(user, "Kullanıcı")
 
@@ -46,7 +46,7 @@ def get_dashboard_stats(user_id: int, db: Session = Depends(get_db)):
         "overall_level": overall_level
     }
 
-#3. GEÇMİŞ LİSTESİ 
+# --- 3. GEÇMİŞ LİSTESİ ---
 @router.get("/history/{user_id}")
 def get_user_history(user_id: int, db: Session = Depends(get_db)):
     sessions = db.query(ExamSession).filter(
@@ -55,7 +55,7 @@ def get_user_history(user_id: int, db: Session = Depends(get_db)):
 
     return [
         {
-            "id": s.session_id,  
+            "id": s.session_id,
             "start_time": s.start_time,
             "detected_level": s.detected_level,
             "overall_score": s.overall_score,
@@ -64,12 +64,11 @@ def get_user_history(user_id: int, db: Session = Depends(get_db)):
         for s in sessions
     ]
 
-#4. DETAYLI RAPOR (Analysis Sayfası)
+# --- 4. DETAYLI RAPOR (DÜZELTME BURADA) ---
 @router.get("/detail/{session_id}")
 def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     """
     Frontend analysis.html ile uyumlu çalışacak şekilde verileri hazırlar.
-    Senin Answer ve QuestionOption tablolarını kullanarak metinleri bulur.
     """
     session = db.query(ExamSession).get(session_id)
     check_found(session, "Sınav oturumu")
@@ -77,7 +76,7 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     if session.status not in ["COMPLETED", "EXPIRED"]:
         raise HTTPException(status_code=403, detail="Bu sınav henüz tamamlanmadı.")
 
-
+    # Cevapları getir
     answers = db.query(Answer).options(
         joinedload(Answer.question).joinedload(Question.options)
     ).filter(Answer.session_id == session_id).all()
@@ -89,20 +88,28 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     for ans in answers:
         question = ans.question
         
-        user_answer_text = "Boş Bırakıldı"
+        # A. Kullanıcı Cevabını Bul
+        user_answer_text = "Cevap Yok"
         if ans.selected_option_id:
-
+            # Şıklı Soru
             selected_opt = next((opt for opt in question.options if opt.option_id == ans.selected_option_id), None)
-            if selected_opt:
-                user_answer_text = selected_opt.content
-         
-        correct_opt = next((opt for opt in question.options if opt.is_correct), None)
-        correct_answer_text = correct_opt.content if correct_opt else "Belirtilmedi"
-
-        if ans.is_correct:
-            correct_count += 1
+            if selected_opt: user_answer_text = selected_opt.content
         else:
-            wrong_count += 1
+            # Açık Uçlu (Text veya Speaking)
+            # Eğer content doluysa onu al (Speaking transcript buraya yazılıyor)
+            # Eğer boşsa text_response'a bak
+            if ans.content:
+                user_answer_text = ans.content
+            elif hasattr(ans, 'text_response') and ans.text_response:
+                user_answer_text = ans.text_response
+        
+        # B. Doğru Cevabı Bul
+        correct_opt = next((opt for opt in question.options if opt.is_correct), None)
+        correct_answer_text = correct_opt.content if correct_opt else "AI Değerlendirmesi"
+
+        # C. İstatistik
+        if ans.is_correct: correct_count += 1
+        else: wrong_count += 1
 
         questions_data.append({
             "question_text": question.text,
@@ -111,12 +118,20 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
             "is_correct": ans.is_correct if ans.is_correct is not None else False
         })
 
+    # *** KRİTİK DÜZELTME ***
+    # Sabit yazı YERİNE veritabanındaki 'ai_feedback' sütununu okuyoruz.
+    feedback_text = getattr(session, 'ai_feedback', None)
+    
+    # Eğer veritabanında henüz bir analiz yoksa (eski sınavlar için)
+    if not feedback_text:
+        feedback_text = "Bu sınav eski tarihli olduğu için yapay zeka analizi bulunamadı. Yeni bir sınav yaparak analizi görebilirsiniz."
+
     return {
         "date": session.end_time if session.end_time else session.last_activity,
         "score": session.overall_score,
         "level": session.detected_level,
         "correct_count": correct_count,
         "wrong_count": wrong_count,
-        "ai_feedback": "Detaylı analiz henüz oluşturulmadı.", 
+        "ai_feedback": feedback_text, # <-- ARTIK CANLI VERİ GELECEK
         "questions": questions_data
     }

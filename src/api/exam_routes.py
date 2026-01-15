@@ -6,16 +6,21 @@ from src.schemas.exam import AnswerCreate, ExamSubmit, ReportOut
 from typing import List
 from datetime import datetime
 
-router = APIRouter() 
+router = APIRouter()
 
-@router.get("/start") 
-
-def start_exam(skill: str, level: str = "A1", user_id: int = Query(...), db: Session = Depends(get_db)):
+@router.get("/start")
+def start_exam(
+    skill: str, 
+    level: str = "A1", 
+    user_id: int = Query(...), 
+    db: Session = Depends(get_db)
+):
     
     service = ExamService(db)
     session, questions = service.start_exam_session(user_id, skill, level)
+    
     if not questions:
-     raise HTTPException(status_code=404, detail="Soru bulunamadı")
+        raise HTTPException(status_code=404, detail="Soru bulunamadı")
     
     remaining_seconds = 0
     if session.end_time:
@@ -29,23 +34,35 @@ def start_exam(skill: str, level: str = "A1", user_id: int = Query(...), db: Ses
         "questions": questions,
         "remaining_seconds": remaining_seconds
     }
- 
 
-@router.post("/submit-answer") 
+@router.post("/submit-answer")
+def submit_answer(ans: AnswerCreate, session_id: int, db: Session = Depends(get_db)):
+    service = ExamService(db)
+    service.save_answer(
+        session_id=session_id, 
+        question_id=ans.question_id, 
+        selected_option_id=ans.selected_option_id,
+        text_response=ans.text_response
+    )
+    return {"status": "saved"}
 
-def submit_answer(db: Session = Depends(get_db)): 
+@router.post("/upload-audio")
+def upload_audio(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    service = ExamService(db)
+    filename = service.save_audio(file)
+    return {"filename": filename}
 
-    return {"status": "saved"} 
-
-@router.post("/upload-audio") 
-
-def upload_audio(file: UploadFile, db: Session = Depends(get_db)): 
-
-    return {"filename": "test.webm"} 
-
-@router.post("/submit") 
-
-def finalize_exam(db: Session = Depends(get_db)): 
-
-    return {"score": 0} 
-
+@router.post("/submit", response_model=ReportOut)
+def finalize_exam(payload: ExamSubmit, db: Session = Depends(get_db)):
+    service = ExamService(db)
+    
+    if payload.answers:
+        for ans in payload.answers:
+            service.save_answer(
+                session_id=payload.session_id,
+                question_id=ans.question_id,
+                selected_option_id=ans.selected_option_id,
+                text_response=ans.text_response
+            )
+            
+    return service.finalize_exam(payload.session_id, skill_name=payload.skill)

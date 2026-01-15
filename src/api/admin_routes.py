@@ -10,10 +10,6 @@ from src.schemas.report import ThreatLogCreate
 
 router = APIRouter()
 
-# =============================================================================
-# 1. QUESTION MANAGEMENT
-# =============================================================================
-
 @router.post("/question")
 def add_question(q: QuestionCreate, db: Session = Depends(get_db)):
     """FR-15: Adds a new question to the question pool."""
@@ -44,11 +40,6 @@ def delete_question(question_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Question not found")
     return {"status": "deleted", "msg": "Question deleted."}
-
-
-# =============================================================================
-# 2. USER MANAGEMENT (FR-18 EXISTING)
-# =============================================================================
 
 @router.get("/users")
 def list_users(db: Session = Depends(get_db)):
@@ -88,11 +79,6 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return {"status": "deleted", "msg": f"User {user_id} deleted."}
 
-
-# =============================================================================
-# 3. GRADE MANAGEMENT & MANUAL INTERVENTION (FR-17)
-# =============================================================================
-
 @router.get("/sessions")
 def list_exam_sessions(db: Session = Depends(get_db)):
     service = AdminService(db)
@@ -111,19 +97,12 @@ def list_exam_sessions(db: Session = Depends(get_db)):
         for s, username in data
     ]
 
-
-
 @router.post("/score-override")
 def override_score(data: ScoreOverride, db: Session = Depends(get_db)):
     """FR-17: Allows the admin to manually override a student's score."""
     service = AdminService(db)
     service.override_score(data.session_id, data.new_score) 
     return {"status": "updated", "msg": "Score successfully updated"}
-
-
-# =============================================================================
-# 4. SECURITY AND LOGS (Security)
-# =============================================================================
 
 @router.get("/policies", response_model=List[str]) 
 def get_policies(db: Session = Depends(get_db)):
@@ -137,11 +116,6 @@ def log_threat(log: ThreatLogCreate, db: Session = Depends(get_db)):
     service = SecurityService(db)
     service.log_threat(log.details)
     return {"status": "logged"}
-
-
-# =============================================================================
-# 5. TECHNICAL SUPPORT AND REPORTS (FR-20: NEW SECTION)
-# =============================================================================
 
 @router.get("/reports")
 def list_reports(db: Session = Depends(get_db)):

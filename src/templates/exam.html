@@ -273,7 +273,7 @@
 
     if(!userId) window.location.href = '/login.html';
 
-    document.getElementById('moduleName').textContent = category.toUpperCase() + " MODÜLÜ (" + level + ")";
+    document.getElementById('moduleName').textContent = category.toUpperCase() + " MODULE (" + level + ")";
     if(category === 'listening') document.getElementById('moduleIcon').setAttribute('data-lucide', 'headphones');
     if(category === 'writing') document.getElementById('moduleIcon').setAttribute('data-lucide', 'pen-tool');
     if(category === 'speaking') document.getElementById('moduleIcon').setAttribute('data-lucide', 'mic');
@@ -290,7 +290,7 @@
         history.pushState(null, null, location.href);
         window.onpopstate = function () { history.go(1); };
         window.onbeforeunload = function() {
-            if (!isSubmitting) return "Sınav devam ediyor.";
+            if (!isSubmitting) return "The exam is still ongoing.";
         };
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('copy', event => event.preventDefault());

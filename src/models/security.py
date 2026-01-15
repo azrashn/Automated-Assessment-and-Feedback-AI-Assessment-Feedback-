@@ -17,5 +17,5 @@ class SecurityPolicy(Base):
   # SQL tablosuyla uyumlu
   policy_name = Column(String(50), unique=True) 
   is_active = Column(Boolean, default=True)
-  # FR-19: Politika detayları (örn: {"block_paste": true, "browser_lock": false})
+  # FR-19: Politika detayları
   config_json = Column(JSON, nullable=True)

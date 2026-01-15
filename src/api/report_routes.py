@@ -69,7 +69,7 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
     """
     Bu fonksiyon, frontend'deki analysis.html sayfası ile uyumlu olacak şekilde sınav detaylarını hazırlar.
     """
-    session = db.query(ExamSession).get(session_id)
+    session = db.query(ExamSession).filter(ExamSession.session_id == session_id).first()
     check_found(session, "Exam session")
 
     if session.status not in ["COMPLETED", "EXPIRED"]:
@@ -86,21 +86,14 @@ def get_exam_detail(session_id: int, db: Session = Depends(get_db)):
 
     for ans in answers:
         question = ans.question
-        
-        # Kullanıcının verdiği cevabı belirle
         user_answer_text = "No answer"
+        
         if ans.selected_option_id:
-            # Çoktan seçmeli soru için
             selected_opt = next((opt for opt in question.options if opt.option_id == ans.selected_option_id), None)
             if selected_opt: user_answer_text = selected_opt.content
         else:
-            # Açık uçlu soru için (yazılı veya konuşma)
-            # Eğer content doluysa, konuşma transkripti burada
-            # Boşsa, text_response alanına bak
-            if ans.content:
-                user_answer_text = ans.content
-            elif hasattr(ans, 'text_response') and ans.text_response:
-                user_answer_text = ans.text_response
+            # Hem 'content' hem 'text_response' alanlarını kontrol et
+            user_answer_text = getattr(ans, 'content', None) or getattr(ans, 'text_response', None) or "No answer"
         
         # Doğru cevabı belirle
         correct_opt = next((opt for opt in question.options if opt.is_correct), None)

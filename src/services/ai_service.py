@@ -108,7 +108,7 @@ class AIModule:
                 
                 # API Call
                 response = self.client.models.generate_content(
-                    model="gemini-1.5-flash", # Updated model name example
+                    model="gemini-flash-latest", # Updated model name example
                     contents=prompt
                 )
                 

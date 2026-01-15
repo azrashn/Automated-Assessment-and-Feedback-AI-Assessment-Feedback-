@@ -44,13 +44,12 @@ class ExamSession(Base):
     status = Column(String(20), default="IN_PROGRESS")
     overall_score = Column(Float, default=0.0)
     detected_level = Column(String(10), nullable=True)
+    ai_feedback = Column(Text, nullable=True)
     is_final = Column(Boolean, default=False) 
     
     student = relationship("src.models.user.Student", back_populates="exam_sessions")
     answers = relationship("Answer", back_populates="session", cascade="all, delete-orphan")
     feedback = relationship("src.models.report.FeedbackReport", back_populates="session", uselist=False)
-
-    
 
 class Answer(Base): 
     __tablename__ = "answers" 

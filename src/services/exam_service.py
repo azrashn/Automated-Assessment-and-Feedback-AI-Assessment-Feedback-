@@ -22,9 +22,9 @@ class ExamService:
 
     def start_exam_session(self, user_id: int, skill: str, level: str):
         """
-        Starts an exam or returns a valid ongoing session if one exists.
+        Starts the exam or returns a valid ongoing session if one exists.
         """
-        # 1. Cycle Check (Has the user already finished this module?)
+        # 1. Cycle Check (Has the user completed this module before?)
         record = self.repo.get_level_record(user_id)
         if record:
             completed_skills = []
@@ -41,15 +41,15 @@ class ExamService:
                     detail=f"⚠️ You have already completed the {skill.upper()} module for this term."
                 )
 
-        # 2. Incomplete Session Check
+        # 2. Check for Incomplete/Ongoing Exam
         active_session = self.repo.get_active_session(user_id)
         
         if active_session:
-            # A) Has the time expired?
+            # A) Has time expired?
             if active_session.end_time and datetime.now() > active_session.end_time:
                 self.repo.mark_session_expired(active_session)
             else:
-                # B) Time remains -> Continue where left off
+                # B) Time still remaining -> Continue from where left off
                 questions = self.repo.get_questions_by_skill(skill, level)
                 return active_session, questions
 
@@ -92,7 +92,7 @@ class ExamService:
         return f"/static/uploads/{filename}"
 
     # =========================================================================
-    # SECTION 2: SCORING & EVALUATION (SCORING AND AI)
+    # SECTION 2: SCORING & EVALUATION (SCORING AND AI - HYBRID COMPATIBLE)
     # =========================================================================
 
     def finalize_exam(self, session_id: int, skill_name: str = None):
@@ -101,6 +101,7 @@ class ExamService:
         
         scores = {}
         detected_speech_text = ""
+        gemini_feedback_list = [] # To accumulate specific feedback from Gemini
 
         # --- A. SCORE QUESTIONS ---
         for ans in session.answers:
@@ -118,7 +119,7 @@ class ExamService:
                     is_answer_correct = True
             
             # ---------------------------------------------------------
-            # 2. OPEN-ENDED / TEXT ANSWERS (Writing, Speaking)
+            # 2. OPEN ENDED / TEXT RESPONSES (Writing, Speaking)
             # ---------------------------------------------------------
             else:
                 # Get user response (Text or previously saved content)
@@ -142,14 +143,13 @@ class ExamService:
                     else:
                         user_text = ""
 
-                # --- 2.2 EVALUATION ---
+                # --- 2.2 EVALUATION (HYBRID AI SYSTEM) ---
                 
-                
-                # A) IF EXACT ANSWER EXISTS (Reading/Listening fill-in-the-blank)
+                # A) IF EXACT ANSWER EXISTS (Reading/Listening fill-in-the-blanks)
                 correct_text_opt = next((o for o in q.options if o.is_correct), None)
                 
                 if correct_text_opt:
-                    # String Normalization (Lower case, strip whitespace)
+                    # String Normalization (Lowercase, remove whitespace)
                     correct_text = correct_text_opt.content.strip().lower()
                     user_text_norm = user_text.strip().lower()
                     
@@ -159,23 +159,39 @@ class ExamService:
                     else:
                         score = 0.0
                 
-                # B) AI ANALYSIS (Essay / Speaking / Commentary Question)
+                # B) AI ANALYSIS (Essay / Speaking / Comment Question) - HYBRID CALL
                 else:
                     if user_text:
-                        # Get keywords entered from admin panel if any
+                        # Prepare necessary data
+                        topic = q.text if q.text else "General Task"
+                        # Prepare keywords list (Required for old algorithm!)
                         k_list = [k.strip() for k in q.keywords.split(",")] if q.keywords else []
                         
-                        # Call AI Analysis
-                        analysis = self.ai.analyze_writing(user_text, required_keywords=k_list)
-                        score = analysis["score"]
+                        # session.difficulty check
+                        exam_level = getattr(session, "difficulty", None) or getattr(session, "difficulty_level", "A1")
                         
-                        # Above 60 points is considered passing (for badges)
+                        # CALL HYBRID FUNCTION (evaluate_writing_hybrid)
+                        analysis = self.ai.evaluate_writing_hybrid(
+                            text=user_text,
+                            topic=topic,
+                            level=exam_level,
+                            keywords=k_list # This parameter was added!
+                        )
+                        
+                        score = float(analysis.get("score", 0))
                         is_answer_correct = (score >= 60)
+                        
+                        # Save feedback from Gemini or System
+                        if analysis.get("feedback"):
+                            gemini_feedback_list.append(analysis["feedback"])
+                        elif analysis.get("feedback_tr"): # Fallback for old key if exists
+                            gemini_feedback_list.append(analysis["feedback_tr"])
+                            
                     else:
                         score = 0.0
 
             # SAVE RESULTS
-            ans.is_correct = is_answer_correct # Write to DB (For Green/Red badges)
+            ans.is_correct = is_answer_correct # Write to DB (For Green/Red badge)
             
             # Aggregate scores by category
             skill_key = q.skill_category or "General"
@@ -184,12 +200,17 @@ class ExamService:
             else:
                 scores[skill_key] = score
                 
-        # If no answers, default score
+        # Default score if no answer
         if not scores and skill_name:
             scores[skill_name.upper()] = 0.0    
         
         # --- B. CALCULATE OVERALL SCORE ---
-        overall_score = self.ai.calculate_overall_score(scores)
+        # Taking simple average
+        if scores:
+            overall_score = round(sum(scores.values()) / len(scores), 1)
+        else:
+            overall_score = 0.0
+
         session.overall_score = overall_score
         session.status = "COMPLETED"
         session.end_time = datetime.now()
@@ -205,7 +226,17 @@ class ExamService:
         # --- C. UPDATE REPORT CARD AND FEEDBACK ---
         self._update_level_record(session.student_id, scores, detected_level)
 
-        fb_text = self.ai.generate_feedback(scores)
+        # Generate Feedback Text
+        fb_text = ""
+        if overall_score >= 85: fb_text = "🏆 Excellent! Your level is in the C1-C2 range."
+        elif overall_score >= 70: fb_text = "✅ Quite good. You are at B2 level."
+        elif overall_score >= 50: fb_text = "📈 Average. You are at B1 level."
+        else: fb_text = "⚠️ Needs improvement. You are at A1-A2 level."
+
+        # Add Gemini Comments
+        if gemini_feedback_list:
+            fb_text += "\n\n🤖 AI / System Evaluation:\n" + "\n".join(gemini_feedback_list)
+
         if detected_speech_text:
             fb_text += f"\n\n🗣️ Detected Speech:\n\"{detected_speech_text}\""
         

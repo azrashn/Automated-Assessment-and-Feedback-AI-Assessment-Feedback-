@@ -1,4 +1,4 @@
-# AI-Powered English Assessment System
+# Automated-Assessment-and-Feedback-AI-Assessment-Feedback
 
 This project is a modern **FastAPI**-based exam system designed to assess students' English skills (Reading, Listening, Writing, Speaking) with AI support.
 

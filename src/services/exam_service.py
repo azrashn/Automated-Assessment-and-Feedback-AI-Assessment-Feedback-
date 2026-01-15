@@ -11,14 +11,43 @@ class ExamService:
         self.db = db
         self.repo = ExamRepository(db)
         self.ai = AIModule()
+        
+        
+    def update_student_overall_level(self, student_id: int):
+        record = self.repo.get_level_record(student_id)
+        if not record: return 
 
-    def update_student_overall_level(self, student_id):
-        pass
+        level_points = { "A1": 20, "A2": 40, "B1": 60, "B2": 80, "C1": 100, "C2": 100 }
+        r_p = level_points.get(record.reading_level, 20)
+        w_p = level_points.get(record.writing_level, 20)
+        l_p = level_points.get(record.listening_level, 20)
+        s_p = level_points.get(record.speaking_level, 20)
 
-    def save_audio(self, file):
-        return "dosya_yolu"
+        total_score = r_p + w_p + l_p + s_p
+        avg_score = total_score / 4
 
-    def start_exam_session(self, user_id: int, skill: str, level: str):
+        final_level = "A1"
+        if avg_score >= 85: final_level = "C1"
+        elif avg_score >= 70: final_level = "B2"
+        elif avg_score >= 50: final_level = "B1"
+        elif avg_score >= 30: final_level = "A2"
+
+        record.overall_level = final_level
+        print(f"📊 Yeni Genel Seviye: {final_level} (Ortalama: {avg_score})")
+def save_audio(self, file: UploadFile):
+        os.makedirs("src/static/uploads", exist_ok=True)
+        filename = f"rec_{datetime.now().timestamp()}.webm"
+        file_path = f"src/static/uploads/{filename}"
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        return f"/static/uploads/{filename}" 
+        
+        
+        
+        
+        
+        
+def start_exam_session(self, user_id: int, skill: str, level: str):
         """
         Sınavı başlatır veya devam eden geçerli bir sınav varsa onu döndürür.
         """
@@ -59,10 +88,11 @@ class ExamService:
         )
         questions = self.repo.get_questions_by_skill(skill, level)
 
-        return new_session, questions
+        return new_session, questions 
 
 
-    def save_answer(self, session_id: int, question_id: int, selected_option_id: int = None, text_response: str = None):
+
+def save_answer(self, session_id: int, question_id: int, selected_option_id: int = None, text_response: str = None):
         """
         Cevabı kaydeder. Önce Süre Kontrolü Yapar.
         """
@@ -82,7 +112,7 @@ class ExamService:
         # Kayıt
         self.repo.save_answer(session_id, question_id, selected_option_id, text_response)
 
-    def finalize_exam(self, session_id: int, skill_name: str = None):
+def finalize_exam(self, session_id: int, skill_name: str = None):
         session = self.repo.get_session(session_id)
         if not session: raise HTTPException(404, "Session not found")
         
@@ -167,10 +197,14 @@ class ExamService:
             "overall_score": overall_score,
             "feedback": fb_text,
             "breakdown": scores
-        }
-    
-    def determine_next_module(self, student_id: int, current_skill: str):
-        pass
+        } 
+        
+        
+def determine_next_module(self, student_id: int, current_skill: str):
+        pass 
 
-    def get_exam_duration(self, session_id: int):
+
+
+
+def get_exam_duration(self, session_id: int):
         pass

@@ -24,13 +24,8 @@ class UserRepository:
         return False
 
     def create_student(self, user_data: UserCreate, password_hash: str, student_number: str):
-        """
-        Yeni öğrenci kaydı oluşturur.
-        SQLAlchemy Inheritance kullanıldığı için SADECE Student oluşturulur.
-        User tablosu otomatik dolar.
-        """
+
         try:
-            # DÜZELTME: User oluşturmayı kaldırdık. Doğrudan Student oluşturuyoruz.
             # User'a ait bilgileri (username, email, password) de buraya veriyoruz.
             db_student = Student(
                 username=user_data.username,
@@ -44,14 +39,10 @@ class UserRepository:
             self.db.add(db_student)
             self.db.flush() # ID oluşması için flush (db_student.user_id oluşur)
 
-            # Level Kaydı (Artık ID'yi student'tan alıyoruz)
+            # Level Kaydı
             db_level = LevelRecord(
                 student_id=db_student.user_id,
-                overall_level="A1",
-                reading_level="A1",
-                writing_level="A1",
-                listening_level="A1",
-                speaking_level="A1"
+                overall_level="A1" # Sadece genel seviye görünsün
             )
             self.db.add(db_level)
             

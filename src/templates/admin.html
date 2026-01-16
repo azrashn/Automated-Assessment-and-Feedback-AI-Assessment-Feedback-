@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - AI Assessment</title>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* --- CSS (Unchanged) --- */
+    :root {
+        /* AI Project Colors */
+        --bg-body: #020617;      /* Slate 950 */
+        --bg-sidebar: #0f172a;   /* Slate 900 */
+        --bg-card: #1e293b;      /* Slate 800 */
+        --bg-input: #334155;     /* Slate 700 */
+        
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border-color: #334155;
+
+        /* Accent Colors */
+        --accent-blue: #3b82f6;
+        --accent-green: #22c55e;
+        --accent-yellow: #eab308;
+        --accent-red: #ef4444;
+        
+        --sidebar-width: 260px;
+        --radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; transition: 0.3s; }
+    ul { list-style: none; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* --- SIDEBAR --- */
+    #sidebar {
+        position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100%;
+        background: var(--bg-sidebar); border-right: 1px solid var(--border-color);
+        z-index: 1000; transition: 0.3s;
+    }
+    #sidebar .brand {
+        font-size: 20px; font-weight: 700; height: 64px; display: flex; align-items: center;
+        color: var(--text-main); padding: 0 24px; margin-bottom: 20px;
+    }
+    #sidebar .brand i { min-width: 40px; font-size: 24px; color: var(--accent-blue); }
+
+    .sidebar-menu { width: 100%; margin-top: 20px; }
+    .sidebar-menu li { margin-bottom: 5px; padding: 0 15px; }
+    .sidebar-menu li a {
+        display: flex; align-items: center; font-size: 14px; color: var(--text-muted);
+        padding: 12px 16px; border-radius: 12px; transition: all 0.3s ease;
+    }
+    .sidebar-menu li a i { min-width: 30px; font-size: 18px; }
+    
+    /* Hover & Active */
+    .sidebar-menu li a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
+    .sidebar-menu li.active a {
+        background: rgba(59, 130, 246, 0.1); color: var(--accent-blue);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .sidebar-menu li a.logout { color: var(--accent-red); }
+    .sidebar-menu li a.logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+    /* --- CONTENT AREA --- */
+    #content {
+        position: relative; width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width);
+        transition: 0.3s; padding: 20px;
+    }
+
+    /* Navbar */
+    nav {
+        display: flex; align-items: center; justify-content: space-between; height: 80px;
+        padding: 0 20px; background: var(--bg-card); border-radius: var(--radius);
+        border: 1px solid var(--border-color); margin-bottom: 30px;
+    }
+    .nav-left { display: flex; align-items: center; gap: 15px; }
+    .nav-left i { font-size: 24px; color: var(--accent-yellow); background: rgba(234, 179, 8, 0.1); padding: 10px; border-radius: 50%; }
+    .welcome-text h3 { font-size: 16px; margin: 0; }
+    .welcome-text p { font-size: 12px; color: var(--text-muted); }
+
+    /* --- DASHBOARD CARDS --- */
+    .card-blocks {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 30px;
+    }
+    .card-blocks li {
+        background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+        display: flex; align-items: center; gap: 20px; border: 1px solid var(--border-color);
+        transition: 0.3s ease;
+    }
+    .card-blocks li:hover { transform: translateY(-5px); border-color: var(--accent-blue); }
+    
+    .card-blocks li i {
+        width: 60px; height: 60px; border-radius: 12px; font-size: 28px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    /* Colors */
+    .card-blocks li:nth-child(1) i { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); }
+    .card-blocks li:nth-child(2) i { background: rgba(34, 197, 94, 0.1); color: var(--accent-green); }
+    .card-blocks li:nth-child(3) i { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+
+    .card-blocks li .text h3 { font-size: 24px; font-weight: 600; margin: 0; }
+    .card-blocks li .text p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    /* --- TABLES --- */
+    .table-card {
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: var(--radius); padding: 20px; overflow: hidden;
+    }
+    .table-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .table-scroll { max-height: 500px; overflow-y: auto; }
+    
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    table th {
+        position: sticky; top: 0; background: var(--bg-card); z-index: 10;
+        text-align: left; padding: 15px; color: var(--text-muted); font-weight: 600; font-size: 14px;
+        border-bottom: 2px solid var(--border-color);
+    }
+    table td { padding: 15px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-main); }
+    table tr:hover td { background-color: rgba(255,255,255,0.02); }
+
+    /* Action Buttons */
+    .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; border: none; font-size: 16px; transition: 0.2s; margin-right: 5px; }
+    .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+    .btn-delete:hover { background: var(--accent-red); color: white; }
+    
+    .btn-edit { background: rgba(234, 179, 8, 0.1); color: var(--accent-yellow); }
+    .btn-edit:hover { background: var(--accent-yellow); color: white; }
+    
+    /* --- BUTTONS & MODALS --- */
+    .btn-add {
+        padding: 10px 20px; background: var(--accent-blue); color: white; border: none;
+        border-radius: 30px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-add:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    /* Modal (Pop-up) */
+    .modal {
+        display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+    }
+    .modal-content {
+        background-color: var(--bg-card); margin: 5% auto; padding: 30px;
+        border: 1px solid var(--border-color); width: 500px; border-radius: var(--radius);
+        box-shadow: 0 25px 80px rgba(0,0,0,0.5); position: relative; animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
+    
+    .close { position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+    .close:hover { color: var(--accent-red); }
+
+    /* Form Elements */
+    .form-group { margin-bottom: 15px; }
+    .form-row { display: flex; gap: 15px; }
+    label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px; }
+    input, select, textarea {
+        width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-color);
+        border-radius: 8px; color: var(--text-main); font-family: inherit; outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
+    
+    .btn-submit {
+        width: 100%; padding: 12px; background: var(--accent-green); color: white; border: none;
+        border-radius: 8px; font-weight: 600; margin-top: 10px; transition: 0.2s;
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(34, 197, 94, 0.3); }
+
+    .hidden { display: none; }
+
+    /* FR-18  */
+    .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    .status-active { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
+    .status-passive { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .btn-toggle { background: rgba(234, 179, 8, 0.1); color: var(--accent-yellow); }
+    .btn-toggle:hover { background: var(--accent-yellow); color: black; }
+
+  </style>
+</head>
+<body>
+
+  <section id="sidebar">
+    <a href="#" class="brand">
+        <i class="bi bi-shield-lock-fill"></i>
+        <span>AdminPanel</span>
+    </a>
+    <ul class="sidebar-menu">
+        <li class="active" onclick="switchTab('dashboard', this)">
+            <a href="#"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+        </li>
+        <li onclick="switchTab('users', this)">
+            <a href="#"><i class="bi bi-people-fill"></i> User Management</a>
+        </li>
+        <li onclick="switchTab('content', this)">
+            <a href="#"><i class="bi bi-database-fill-add"></i> Content Management</a>
+        </li>
+        <li onclick="switchTab('grades', this)">
+            <a href="#"><i class="bi bi-award-fill"></i> Exam Grades</a>
+        </li>
+        <li onclick="switchTab('security', this)">
+            <a href="#"><i class="bi bi-lock-fill"></i> Security & Logs</a>
+        </li>
+        <li onclick="switchTab('reports', this)">
+            <a href="#"><i class="bi bi-headset"></i> Support & Issues</a>
+        </li>
+    </ul>
+    <ul class="sidebar-menu" style="margin-top: auto;">
+        <li>
+            <a href="#" class="logout" onclick="logout()"><i class="bi bi-box-arrow-left"></i> Logout</a>
+        </li>
+    </ul>
+  </section>
+
+  <section id="content">
+    
+    <nav>
+        <div class="nav-left">
+            <i class="bi bi-person-circle"></i>
+            <div class="welcome-text">
+                <p>Welcome back,</p>
+                <h3 id="adminName">Admin User</h3>
+            </div>
+        </div>
+        <div class="profile-area">
+            <div style="width:40px; height:40px; background:#3b82f6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">A</div>
+        </div>
+    </nav>
+
+    <main id="sec-dashboard" class="tab-section">
+        <div class="head-title">
+            <h1>Dashboard</h1>
+        </div>
+
+        <ul class="card-blocks">
+            <li>
+                <i class="bi bi-people-fill"></i>
+                <span class="text">
+                    <h3 id="stat-users">0</h3>
+                    <p>Total Users</p>
+                </span>
+            </li>
+            <li>
+                <i class="bi bi-pencil-square"></i>
+                <span class="text">
+                    <h3 id="stat-questions">0</h3>
+                    <p>Total Questions</p>
+                </span>
+            </li>
+            <li>
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span class="text">
+                    <h3 id="stat-alerts">0</h3>
+                    <p>Security Alerts</p>
+                </span>
+            </li>
+        </ul>
+    </main>
+
+    <main id="sec-users" class="tab-section hidden">
+        <div class="head-title">
+            <h1>User Management</h1>
+        </div>
+        <div class="table-card">
+            <div class="table-header">
+                <h3>ALL USERS</h3>
+                <input type="text" placeholder="Search user..." style="width:200px; padding:8px;">
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="sec-content" class="tab-section hidden">
+        <div class="head-title">
+            <h1>Question Pool</h1>
+            <button class="btn-add" onclick="openModal('modal-question')">
+                <i class="bi bi-plus-lg"></i> Add Question
+            </button>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <h3>QUESTION LIST</h3>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Q.ID</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Text Preview</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="sec-grades" class="tab-section hidden">
+        <div class="head-title">
+            <h1>Exam Grades (FR-17)</h1>
+        </div>
+        <div class="table-card">
+            <div class="table-header">
+                <h3>COMPLETED EXAMS</h3>
+                <small style="color:var(--text-muted)">Manual Override Available</small>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Session ID</th>
+                            <th>Student ID</th>
+                            <th>Date</th>
+                            <th>Auto Score</th>
+                            <th>Level</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradesTableBody">
+                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <main id="sec-security" class="tab-section hidden">
+        <div class="head-title">
+            <h1>Security Policies</h1>
+        </div>
+        <div class="table-card">
+            <h3>Active Restrictions</h3>
+            <ul id="policyList" style="margin-top:15px; list-style:circle; margin-left:20px; color:var(--accent-red);">
+                </ul>
+        </div>
+    </main>
+
+    <main id="sec-reports" class="tab-section hidden">
+        <div class="head-title">
+            <h1>Technical Support</h1>
+        </div>
+        <div class="table-card">
+            <div class="table-header">
+                <h3>ISSUE REPORTS</h3>
+                <small style="color:var(--text-muted)">Student reported technical problems</small>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student</th>
+                            <th>Issue Type</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+  </section>
+
+  <div id="modal-question" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-question')">&times;</span>
+        <h2 style="color:white; margin-bottom:20px;">Add New Question</h2>
+        
+        <form id="addQuestionForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Skill Category</label>
+                    <select id="qSkill">
+                        <option value="READING">Reading</option>
+                        <option value="LISTENING">Listening</option>
+                        <option value="WRITING">Writing</option>
+                        <option value="SPEAKING">Speaking</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Difficulty</label>
+                    <select id="qLevel">
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="B1">B1</option>
+                        <option value="B2">B2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Question Type</label>
+                <select id="qType" onchange="toggleOptions(this.value)">
+                    <option value="MULTIPLE_CHOICE">Multiple Choice</option>
+                    <option value="OPEN_ENDED">Open Ended</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Question Text</label>
+                <textarea id="qText" rows="3" required></textarea>
+            </div>
+
+            <div id="optionsArea">
+                <label style="color:var(--accent-yellow)">Options (Select Correct)</label>
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <input type="radio" name="correctOpt" value="0" checked style="width:20px;">
+                    <input type="text" class="opt-input" placeholder="Option A" >
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <input type="radio" name="correctOpt" value="1" style="width:20px;">
+                    <input type="text" class="opt-input" placeholder="Option B" >
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <input type="radio" name="correctOpt" value="2" style="width:20px;">
+                    <input type="text" class="opt-input" placeholder="Option C">
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <input type="radio" name="correctOpt" value="3" style="width:20px;">
+                    <input type="text" class="opt-input" placeholder="Option D">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Save Question</button>
+        </form>
+    </div>
+  </div>
+
+  <div id="modal-score" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-score')">&times;</span>
+        <h2 style="color:white; margin-bottom:20px;">Manual Score Override</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:15px;">
+            Warning: This action will permanently change the student's result.
+        </p>
+        <form id="scoreOverrideForm">
+            <input type="hidden" id="overrideSessionId">
+            <div class="form-group">
+                <label>New Score (0-100)</label>
+                <input type="number" id="overrideScore" min="0" max="100" step="0.1" required>
+            </div>
+            <div class="form-group">
+                <label>Reason for Change</label>
+                <textarea id="overrideReason" rows="2" placeholder="e.g. Technical error during exam..."></textarea>
+            </div>
+            <button type="submit" class="btn-submit" style="background:var(--accent-yellow); color:black;">Update Score</button>
+        </form>
+    </div>
+  </div>

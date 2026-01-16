@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">       
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -8,11 +8,12 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <title>Sınav - AI Assessment</title>
+  <title>Exam - AI Assessment</title>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
   <script>
+        // 1. SESSION CHECK                       // Kod 313-315 "Copy/Paste Protection" ve "Right-Click Restriction"
         function checkSession() {
             const userId = localStorage.getItem("user_id");
             if (!userId) {
@@ -28,6 +29,7 @@
         }
         checkSession();
 
+        // 2. BROWSER HISTORY CHECK
         history.pushState(null, null, location.href);
         window.onpopstate = function () { history.go(1); };
 
@@ -39,6 +41,7 @@
     </script>
 
   <style>
+    /*  CSS DESIGN -*/
     :root { --bg-body:#020617; --bg-card:#0f172a; --bg-hover:#1e293b; --text-main:#f8fafc; --text-muted:#94a3b8; --primary:#4f46e5; --primary-hover:#4338ca; --border-color:#334155; --danger:#ef4444; --accent:#0ea5e9; --success:#22c55e; }
     body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; margin:0; }
     
@@ -51,6 +54,7 @@
     .q-meta { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
     .q-text { font-size: 1.25rem; font-weight: 500; margin-bottom: 2rem; line-height: 1.6; }
     
+    /* AUDIO PLAYER */
     .audio-player-box { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1rem; }
     .player-header { display: flex; justify-content: space-between; align-items: center; }
     .play-counter { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 20px; }
@@ -60,6 +64,7 @@
     .custom-play-btn:hover { background: var(--primary-hover); }
     .custom-play-btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
 
+    /* SPEAKING */
     .record-box { text-align: center; padding: 2rem; border: 2px dashed var(--border-color); border-radius: 12px; background: var(--bg-hover); }
     .record-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: var(--danger); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; transition: 0.2s; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.2); }
     .record-btn:hover { transform: scale(1.05); }
@@ -67,12 +72,14 @@
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     .status-text { font-size: 1rem; font-weight: 500; color: var(--text-main); margin-bottom: 0.5rem; }
 
+    /* WRITING */
     .writing-wrapper { display: flex; flex-direction: column; gap: 10px; }
     .security-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
     .exam-textarea { width: 100%; height: 250px; background: var(--bg-body); border: 1px solid var(--border-color); color: white; padding: 1rem; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; resize: vertical; }
     .exam-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
     .word-counter { text-align: right; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
 
+    /* OPTIONS */
     .options-grid { display: grid; gap: 1rem; }
     .option-btn { width: 100%; text-align: left; padding: 1rem; border-radius: 8px; background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-muted); cursor: pointer; transition: 0.2s; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
     .option-btn:hover { border-color: var(--primary); color: white; background: rgba(79, 70, 229, 0.05); }
@@ -81,7 +88,8 @@
     .option-btn.selected .option-circle { border-color: white; background: white; color: var(--primary); }
 
     .footer-bar { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); }
-
+    
+    /* Nav Buttons (Common) */
     .btn-nav { 
         background: var(--primary); 
         color: white; 
@@ -103,11 +111,13 @@
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); 
     }
     
+    /* Disabled State */
     .btn-nav:disabled { 
         opacity: 0; 
         pointer-events: none; 
     }
 
+    /* Finish Button  */
     .btn-finish {
         background-color: var(--success) !important;
     }
@@ -116,9 +126,10 @@
         box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
 
+    /* FR-20: REPORT ISSUE  */
     .btn-report {
         background: rgba(234, 179, 8, 0.1); 
-        color: var(--accent-yellow, #eab308);
+        color: var(--accent-yellow, #eab308); 
         border: 1px solid rgba(234, 179, 8, 0.3);
         padding: 0.5rem 1rem;
         border-radius: 8px;
@@ -128,7 +139,7 @@
         align-items: center;
         gap: 8px;
         transition: 0.2s;
-        margin-right: 15px;
+        margin-right: 15px; 
         font-size: 0.9rem;
     }
     .btn-report:hover {
@@ -136,17 +147,19 @@
         color: #000;
     }
 
+    /* Modal Overlay */
     .modal-overlay {
-        display: none;
+        display: none; 
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(4px);
-        z-index: 3000;
+        z-index: 3000; 
         align-items: center;
         justify-content: center;
     }
     .modal-overlay.active { display: flex; }
 
+    /* Modal Box */
     .modal-box {
         background: var(--bg-card);
         width: 90%; max-width: 500px;
@@ -192,7 +205,7 @@
 
     <div style="display:flex; align-items:center;">
         <button class="btn-report" onclick="openReportModal()">
-            <i data-lucide="flag" style="width:16px;"></i> Report an Issue
+            <i data-lucide="flag" style="width:16px;"></i> Report Issue
         </button>
         
         <div class="timer-badge" id="timer">00:00</div>
@@ -203,7 +216,7 @@
     <div class="question-card" id="questionArea">
         <div style="text-align:center; color:var(--text-muted); padding: 2rem;">
             <i data-lucide="loader-2" class="animate-spin" style="width: 32px; height: 32px; margin-bottom: 1rem;"></i>
-            <p>Questions are being fetched from the server...</p>
+            <p>Fetching questions from server...</p>
         </div>
     </div>
 </div>
@@ -213,30 +226,30 @@
         <div class="modal-header">
             <div class="modal-title">
                 <i data-lucide="alert-triangle" style="color:#eab308"></i>
-                Report an Issue
+                Report Issue
             </div>
             <button class="btn-close" onclick="closeReportModal()">&times;</button>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Type of Issue</label>
+            <label class="form-label">Issue Type</label>
             <select id="issueType" class="form-select">
-                <option value="Audio Issue">No Sound / Not Audible</option>
+                <option value="Audio Issue">Audio Not Playing / Inaudible</option>
                 <option value="Image Issue">Image / Question Not Loaded</option>
                 <option value="Microphone Issue">Microphone Not Working</option>
-                <option value="Typing Issue">Cannot write text</option>
-                <option value="Other">Other Technical Issues</option>
+                <option value="Typing Issue">Cannot Type</option>
+                <option value="Other">Other Technical Issue</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Detailed Explanation</label>
-            <textarea id="issueDesc" class="form-textarea" rows="4" placeholder="Please briefly describe your issue..."></textarea>
+            <label class="form-label">Detailed Description</label>
+            <textarea id="issueDesc" class="form-textarea" rows="4" placeholder="Please briefly describe the issue you are facing..."></textarea>
         </div>
 
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeReportModal()">Cancel</button>
-            <button class="btn-send" onclick="submitReport()">Send</button>
+            <button class="btn-send" onclick="submitReport()">Submit</button>
         </div>
     </div>
 </div>
@@ -286,11 +299,12 @@
         return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }
 
+    //  SECURITY 
     function enableSecurity() {
         history.pushState(null, null, location.href);
         window.onpopstate = function () { history.go(1); };
         window.onbeforeunload = function() {
-            if (!isSubmitting) return "The exam is still ongoing.";
+            if (!isSubmitting) return "The exam is in progress.";
         };
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('copy', event => event.preventDefault());
@@ -302,6 +316,7 @@
         isSubmitting = true;
     }
 
+    //  LOAD QUESTIONS 
     async function loadQuestions() {
         try {
             enableSecurity();
@@ -309,34 +324,35 @@
             const res = await fetch(`http://127.0.0.1:8000/api/exam/start?user_id=${userId}&level=${level}&skill=${category}`);
             if(!res.ok) {
                  const errData = await res.json();
-                 if(res.status === 400 && errData.detail.includes("already")) {
+                 if(res.status === 400 && errData.detail.includes("zaten")) {
                      disableSecurity();
-                     alert(errData.detail);
+                     alert(errData.detail.replace("zaten", "already")); // Basic translation attempt for backend error
                      window.location.href = "/dashboard.html";
                      return;
                  }
-                 throw new Error(errData.detail || "No question found.");
+                 throw new Error(errData.detail || "No questions found.");
             }
             
             const data = await res.json();
             sessionId = data.session_id; 
             const serverRemainingSeconds = data.remaining_seconds;
 
+            // LOAD SAVED PROGRESS
             const savedData = getProgress();
             
             if (savedData && savedData.questions && savedData.questions.length > 0) {
-                console.log("The old session has been loaded.");
+                console.log("Restored previous session.");
                 questions = savedData.questions;
                 currentQIndex = savedData.index || 0;
                 userAnswers = savedData.answers || {};
                 audioCounts = savedData.audioCounts || {};
             } else {
-                console.log("New questions have been uploaded.");
+                console.log("Loaded new questions.");
                 questions = data.questions; 
                 saveProgress(); 
             }
 
-            if(questions.length === 0) throw new Error("No question found.");
+            if(questions.length === 0) throw new Error("No questions found.");
 
             document.getElementById('totalQ').innerText = questions.length;
             showQuestion(currentQIndex);
@@ -350,6 +366,7 @@
         }
     }
 
+    //  TIMER 
     function startTimer(seconds) {
         const timerEl = document.getElementById('timer');
         let rem = seconds;
@@ -386,11 +403,13 @@
         localStorage.removeItem(`exam_session_${sessionId}`);
     }
 
+    //  DISPLAY QUESTION 
     function showQuestion(index) {
         const q = questions[index];
         const card = document.getElementById('questionArea');
         document.getElementById('currentQ').innerText = index + 1;
 
+        // BUTTON MANAGEMENT
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
 
@@ -400,12 +419,13 @@
             prevBtn.disabled = false;
         }
 
+        // Next Button
         nextBtn.classList.remove('btn-finish');
-        nextBtn.style.backgroundColor = "";
+        nextBtn.style.backgroundColor = ""; 
 
         if (index === questions.length - 1) {
-            nextBtn.innerHTML = '<span>Finish the exam</span> <i data-lucide="check-circle" style="width:20px;"></i>';
-            nextBtn.classList.add('btn-finish');
+            nextBtn.innerHTML = '<span>Finish Exam</span> <i data-lucide="check-circle" style="width:20px;"></i>';
+            nextBtn.classList.add('btn-finish'); 
             nextBtn.onclick = finishExamConfirm;
         } else {
             nextBtn.innerHTML = '<span>Next Question</span> <i data-lucide="arrow-right" style="width:20px;"></i>';
@@ -426,7 +446,7 @@
                         ${isAnswered ? '<i data-lucide="check"></i>' : '<i data-lucide="mic"></i>'}
                     </button>
                     <div class="status-text" id="status_${q.question_id}" style="${isAnswered ? 'color:#22c55e' : ''}">
-                        ${isAnswered ? 'Recording Uploaded.' : 'Tap the microphone to start recording'}
+                        ${isAnswered ? 'Recording Uploaded.' : 'Tap microphone to start recording'}
                     </div>
                 </div>`;
         }
@@ -446,10 +466,10 @@
             const wordCount = savedText.trim() === '' ? 0 : savedText.trim().split(/\s+/).length;
             contentHtml = `
                 <div class="writing-wrapper">
-                    <div class="security-badge"><i data-lucide="shield-alert" style="width:16px;"></i> Safety Mode: Copy/Paste Prohibited (FR-19)</div>
-                    <textarea class="exam-textarea" placeholder="Write your essay here..."
+                    <div class="security-badge"><i data-lucide="shield-alert" style="width:16px;"></i> Security Mode: Copy/Paste Disabled (FR-19)</div>
+                    <textarea class="exam-textarea" placeholder="Write your composition here..."
                      oninput="handleWritingInput(${q.question_id}, this)">${savedText}</textarea>
-                    <div class="word-counter">Word: <span id="wCount_${q.question_id}" style="color:var(--primary);">${wordCount}</span></div>
+                    <div class="word-counter">Words: <span id="wCount_${q.question_id}" style="color:var(--primary);">${wordCount}</span></div>
                 </div>`;
         }
 
@@ -464,16 +484,16 @@
             
             if (remains <= 0) {
                 btnState = 'disabled';
-                btnText = '<i data-lucide="lock" style="width:16px;"></i> The Rights Are Filled';
+                btnText = '<i data-lucide="lock" style="width:16px;"></i> Locked';
             }
 
             mediaHtml = `
                 <div class="audio-player-box">
                     <div class="player-header">
                         <span style="font-weight:600; color:var(--primary); display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="play-circle"></i> Listening Record
+                            <i data-lucide="play-circle"></i> Listening Track
                         </span>
-                        <span id="playCounter" class="play-counter">Remaining Rights: ${remains}</span>
+                        <span id="playCounter" class="play-counter">Remaining Plays: ${remains}</span>
                     </div>
                     <audio id="audioPlayer" style="display:none;" preload="metadata"><source src="${audioPath}" type="audio/mpeg"></audio>
                     <div style="display:flex; align-items:center; gap:1rem; margin-top:1rem;">
@@ -485,7 +505,7 @@
         }
 
         card.innerHTML = `
-            <div class="q-meta"><span>Difficulty: ${level}</span><span>Puan: 10</span></div>
+            <div class="q-meta"><span>Difficulty: ${level}</span><span>Points: 10</span></div>
             ${mediaHtml}
             <div class="q-text">${q.text}</div>
             ${contentHtml}
@@ -508,6 +528,7 @@
         saveProgress();
     }
 
+    // NEXT FUNCTION
     window.nextQuestion = function() {
         if (currentQIndex < questions.length - 1) {
             currentQIndex++;
@@ -525,7 +546,7 @@
             showQuestion(currentQIndex);
         }
     }
-
+    //  MEDIA 
     let isRecording = false;
     let mediaRecorder;
     let audioChunks = [];
@@ -557,7 +578,7 @@
             isRecording = false;
             btn.classList.remove('recording');
             btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i>';
-            statusText.innerText = "Loading...";
+            statusText.innerText = "Uploading...";
             lucide.createIcons();
         }
     }
@@ -576,12 +597,12 @@
             btn.style.background = "#22c55e";
             btn.innerHTML = '<i data-lucide="check" style="width:32px; height:32px;"></i>';
             btn.disabled = true;
-            document.getElementById(`status_${qId}`).innerText = "Kayıt Başarılı.";
+            document.getElementById(`status_${qId}`).innerText = "Recording Successful.";
             document.getElementById(`status_${qId}`).style.color = "#22c55e";
             lucide.createIcons();
             saveProgress();
         } catch (err) { 
-            alert("An error occurred while loading the audio."); 
+            alert("Error uploading audio."); 
             const btn = document.getElementById(`recBtn_${qId}`);
             btn.innerHTML = '<i data-lucide="mic"></i>';
             lucide.createIcons();
@@ -610,11 +631,11 @@
 
             if (played < 2) {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="rotate-cw"></i> Tekrar';
+                btn.innerHTML = '<i data-lucide="rotate-cw"></i> Replay';
                 btn.style.background = "var(--primary)";
                 lucide.createIcons();
             } else {
-                btn.innerHTML = '<i data-lucide="lock"></i> Doldu';
+                btn.innerHTML = '<i data-lucide="lock"></i> Limit Reached';
                 btn.style.opacity = "0.6";
                 btn.disabled = true;
                 lucide.createIcons();
@@ -626,13 +647,13 @@
         const qId = questions[currentQIndex].question_id;
         const played = audioCounts[qId] || 0;
 
-        if (played >= 2) { alert("Your time is up."); return; }
+        if (played >= 2) { alert("Limit reached."); return; }
 
         audioCounts[qId] = played + 1;
         saveProgress(); 
 
         const remains = 2 - audioCounts[qId];
-        document.getElementById('playCounter').innerText = `Remaining Rights:: ${remains}`;
+        document.getElementById('playCounter').innerText = `Remaining Plays: ${remains}`;
         
         const audio = document.getElementById('audioPlayer');
         audio.play();
@@ -642,7 +663,7 @@
         btn.innerHTML = '<i data-lucide="volume-2"></i>';
         lucide.createIcons();
     }
-
+    //  FINISH 
     function finishExamConfirm() {
         if(confirm("Are you sure you want to finish the exam?")) {
             submitExam();
@@ -650,7 +671,7 @@
     }
 
     function forceFinish() {
-        alert("Time's up! Your exam is being automatically ended.");
+        alert("Time is up! Your exam is ending automatically.");
         submitExam();
     }
 
@@ -661,7 +682,7 @@
         const submitBtn = document.getElementById('nextBtn');
         if(submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerText = "Recording...";
+            submitBtn.innerText = "Saving...";
         }
 
         const answersPayload = Object.keys(userAnswers).map(qId => {
@@ -685,7 +706,7 @@
             
             if(!res.ok) {
                 const errData = await res.json();
-                throw new Error(errData.detail || "Registration error");
+                throw new Error(errData.detail || "Submission error");
             }
             
             const result = await res.json();
@@ -694,22 +715,22 @@
             window.location.replace(`/analysis.html?id=${sessionId}`);
 
         } catch (err) {
-            alert("Hata: " + err.message);
+            alert("Error: " + err.message);
             isSubmitting = false;
             if(submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "Tekrar Dene";
+                submitBtn.innerText = "Try Again";
             }
         }
     }
-    
+    // FR-20: REPORT ISSUE LOGIC 
     function openReportModal() {
         document.getElementById('reportModal').classList.add('active');
     }
 
     function closeReportModal() {
         document.getElementById('reportModal').classList.remove('active');
-        document.getElementById('issueDesc').value = ''; // Temizle
+        document.getElementById('issueDesc').value = ''; 
     }
 
     async function submitReport() {
@@ -718,7 +739,7 @@
         const uId = localStorage.getItem('user_id');
 
         if(!desc.trim()) {
-            alert("Please write an explanation.");
+            alert("Please write a description.");
             return;
         }
 
@@ -740,17 +761,17 @@
             });
 
             if(res.ok) {
-                alert("Your report has been forwarded to the manager. Thank you.");
+                alert("Your report has been sent to the admin. Thank you.");
                 closeReportModal();
             } else {
-                alert("The notification could not be sent. Please try again.");
+                alert("Could not send report. Please try again.");
             }
 
         } catch(err) {
             console.error(err);
             alert("Server error.");
         } finally {
-            btn.innerText = "Send";
+            btn.innerText = "Submit";
             btn.disabled = false;
         }
     }

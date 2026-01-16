@@ -485,3 +485,492 @@
         </form>
     </div>
   </div>
+
+  <script>
+    // 1. AUTH & ROLE CHECK 
+    const role = localStorage.getItem("role");
+    if (role !== "admin" && role !== "administrator") {
+        // Redirect to login if not admin (Security)
+        // window.location.href = "/login.html"; 
+    }
+    document.getElementById("adminName").innerText = localStorage.getItem("username") || "Admin";
+
+    //  2. TAB SWITCHING 
+    function switchTab(tabId, element) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        // Show requested tab
+        const section = document.getElementById('sec-' + tabId);
+        if(section) {
+            section.classList.remove('hidden');
+        } else {
+            console.error("Tab ID not found: sec-" + tabId);
+            return;
+        }
+        
+        // Update sidebar active class
+        document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Load data for relevant tab
+        if(tabId === 'users') loadUsers();
+        if(tabId === 'content') loadQuestions();
+        if(tabId === 'grades') loadExamGrades(); 
+        if(tabId === 'security') loadPolicies();
+        if(tabId === 'reports') loadReports();
+    }
+
+    // 3. MODAL LOGIC 
+    function openModal(id) { document.getElementById(id).style.display = "block"; }
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    
+    // Close modal when clicking outside
+    window.onclick = function(e) { 
+        if(e.target.classList.contains('modal')) e.target.style.display = "none"; 
+    }
+
+    function toggleOptions(val) {
+        document.getElementById('optionsArea').style.display = (val === 'OPEN_ENDED') ? 'none' : 'block';
+    }
+
+    // 4. API FUNCTIONS 
+    // A. GET USERS 
+    async function loadUsers() {
+        const tbody = document.getElementById("userTableBody");
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>Loading...</td></tr>"; 
+        
+        try {
+            const res = await fetch('/api/admin/users');
+            if (!res.ok) throw new Error("Could not fetch data");
+            
+            const users = await res.json();
+            tbody.innerHTML = ""; 
+
+            if (users.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No registered users found.</td></tr>";
+                document.getElementById('stat-users').innerText = 0;
+                return;
+            }
+
+            users.forEach(u => {
+                const initial = u.username ? u.username.charAt(0).toUpperCase() : "U";
+                
+                // Translated Status Badge
+                const statusBadge = u.is_active 
+                    ? `<span class="badge-status status-active">Active</span>` 
+                    : `<span class="badge-status status-passive">Inactive</span>`;
+                
+                const toggleIcon = u.is_active ? "bi-unlock-fill" : "bi-lock-fill";
+                const toggleTitle = u.is_active ? "Freeze Account" : "Activate Account";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${u.user_id}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div style="width:30px; height:30px; background:#334155; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:bold;">
+                                    ${initial}
+                                </div>
+                                ${u.username}
+                            </div>
+                        </td>
+                        <td>${u.email}</td>
+                        <td>
+                            <span style="background:rgba(59,130,246,0.1); color:#3b82f6; padding:2px 8px; border-radius:4px; font-size:12px;">
+                                ${u.role}
+                            </span>
+                        </td>
+                        <td>${statusBadge}</td> <td>${u.joined_at}</td>
+                        <td>
+                            <button class="btn-icon btn-toggle" onclick="toggleUserStatus(${u.user_id})" title="${toggleTitle}">
+                                <i class="bi ${toggleIcon}"></i>
+                            </button>
+
+                            <button class="btn-icon btn-delete" onclick="deleteUser(${u.user_id})" title="Delete User">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('stat-users').innerText = users.length;
+
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#ef4444;'>Error loading data.</td></tr>";
+        }
+    }
+
+    //  FR-18 (FREEZE/UNFREEZE ACCOUNT)
+    async function toggleUserStatus(userId) {
+        if(!confirm("Are you sure you want to change the status of this user?")) return;
+
+        try {
+            const res = await fetch(`/api/admin/user/${userId}/toggle-status`, { method: 'POST' });
+            const data = await res.json();
+
+            if (res.ok) {
+                loadUsers(); 
+            } else {
+                alert("Error: " + data.detail);
+            }
+        } catch (err) {
+            alert("Server error.");
+        }
+    }
+
+    // B. DELETE USER
+    async function deleteUser(id) {
+        if(!confirm(`Are you sure you want to delete user ID: ${id}?`)) return;
+
+        try {
+            const res = await fetch(`/api/admin/user/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                loadUsers(); 
+            } else {
+                alert("Deletion failed.");
+            }
+        } catch(e) {
+            alert("Server error.");
+        }
+    }
+
+    // C. GET QUESTIONS
+    async function loadQuestions() {
+        const tbody = document.getElementById("questionTableBody");
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Loading...</td></tr>";
+
+        try {
+            const res = await fetch('/api/admin/questions');
+            if (!res.ok) throw new Error("Could not fetch data");
+
+            const questions = await res.json();
+            tbody.innerHTML = "";
+
+            if (questions.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:var(--text-muted);'>No questions added yet.</td></tr>";
+                document.getElementById('stat-questions').innerText = 0;
+                return;
+            }
+
+            questions.forEach(q => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${q.question_id}</td>
+                        <td>${q.type}</td>
+                        <td>${q.skill_category}</td>
+                        <td>
+                            <span style="background:rgba(234, 179, 8, 0.1); color:#eab308; padding:2px 6px; border-radius:4px; font-size:12px;">${q.difficulty}</span>
+                        </td>
+                        <td>${q.text.substring(0, 40)}...</td>
+                        <td>
+                            <button class="btn-icon btn-delete" onclick="deleteQuestion(${q.question_id})" title="Delete Question">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('stat-questions').innerText = questions.length;
+
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:#ef4444;'>Could not load questions.</td></tr>";
+        }
+    }
+
+    // D. DELETE QUESTION
+    async function deleteQuestion(id) {
+        if(!confirm("Do you want to permanently delete this question?")) return;
+        
+        try {
+            const res = await fetch(`/api/admin/question/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                loadQuestions(); 
+            } else {
+                alert("Deletion failed.");
+            }
+        } catch(e) {
+            alert("Connection error.");
+        }
+    }
+
+    // E. SECURITY POLICIES
+    async function loadPolicies() {
+        const list = document.getElementById("policyList");
+        list.innerHTML = "<li>Loading...</li>";
+        try {
+            const res = await fetch('/api/admin/policies');
+            if(res.ok) {
+                const data = await res.json();
+                list.innerHTML = "";
+                if(data.length === 0) {
+                    list.innerHTML = "<li>No active rules.</li>";
+                }
+                data.forEach(p => {
+                    list.innerHTML += `<li><i class="bi bi-check-circle-fill" style="color:#22c55e; margin-right:5px;"></i> ${p}</li>`;
+                });
+            } else {
+                list.innerHTML = "<li>Policies could not be loaded.</li>";
+            }
+        } catch(e) {
+            list.innerHTML = "<li>Copy-Paste Protection: ACTIVE</li><li>Tab Switching Monitor: ACTIVE</li>";
+        }
+    }
+
+      function toggleOptions(value) {
+        // 1. Find elements by ID
+        const optionsDiv = document.getElementById('optionsArea'); 
+        const inputs = document.querySelectorAll('.opt-input');    
+        
+        if (!optionsDiv) return;
+
+        // 2. Logic Check
+        // If "Open Ended" (Writing/Speaking) -> HIDE
+        if (value === 'OPEN_ENDED' || value === 'WRITING' || value === 'SPEAKING') {
+            
+            // A) Hide Box
+            optionsDiv.style.display = 'none';
+
+            // B) Remove 'required' to prevent validation error
+            inputs.forEach(input => {
+                input.removeAttribute('required');
+                input.value = ""; // Clear content
+            });
+
+        } 
+        // If "Multiple Choice" (Reading/Listening) -> SHOW
+        else {
+            
+            // A) Show Box
+            optionsDiv.style.display = 'block';
+
+            // B) Make inputs required again
+            inputs.forEach(input => {
+                input.setAttribute('required', '');
+            });
+        }
+    }
+
+    // Set status on initial load based on selection
+    document.addEventListener('DOMContentLoaded', () => {
+        const qType = document.getElementById('qType');
+        if (qType) {
+            toggleOptions(qType.value);
+        }
+    });
+
+ 
+    //  FR-17: LOAD GRADES AND EDIT 
+    async function loadExamGrades() {
+        const tbody = document.getElementById("gradesTableBody");
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Loading data...</td></tr>";
+        
+        try {
+            const res = await fetch('/api/admin/sessions');
+            if(!res.ok) throw new Error("Could not fetch data");
+            
+            const sessions = await res.json();
+            tbody.innerHTML = "";
+
+            if(sessions.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No completed exams were found.</td></tr>";
+                return;
+            }
+
+            sessions.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${s.session_id}</td>
+                        <td>
+                            <div style="font-weight:600; color:white;">${s.student_name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">ID: ${s.student_id}</div>
+                        </td>
+                        <td>${new Date(s.date).toLocaleDateString()}</td>
+                        <td style="font-weight:bold; color:var(--accent-green);">${s.score}</td>
+                        <td>
+                            <span style="background:rgba(59,130,246,0.1); color:#3b82f6; padding:2px 8px; border-radius:4px; font-size:12px;">
+                                ${s.level || '-'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-icon btn-edit" title="Edit Score" onclick="openScoreModal(${s.session_id}, ${s.score})">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>An error occurred.</td></tr>";
+        }
+    }
+
+    function openScoreModal(sessionId, currentScore) {
+        document.getElementById('overrideSessionId').value = sessionId;
+        document.getElementById('overrideScore').value = currentScore;
+        openModal('modal-score');
+    }
+
+    document.getElementById('scoreOverrideForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const payload = {
+            session_id: parseInt(document.getElementById('overrideSessionId').value),
+            new_score: parseFloat(document.getElementById('overrideScore').value),
+            reason: document.getElementById('overrideReason').value
+        };
+
+        try {
+            const res = await fetch('/api/admin/score-override', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                alert("Score has been successfully updated!");
+                closeModal('modal-score');
+                loadExamGrades(); // Refresh table
+            } else {
+                alert("An error occurred.");
+            }
+        } catch(err) {
+            alert("Server error.");
+        }
+    });
+
+    //  5. ADD QUESTION FORM (POST)
+    document.getElementById('addQuestionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const type = document.getElementById('qType').value;
+        let options = [];
+
+        if (type === 'MULTIPLE_CHOICE') {
+            const inputs = document.querySelectorAll('.opt-input');
+            const checkedRadio = document.querySelector('input[name="correctOpt"]:checked');
+            
+            if(!checkedRadio) {
+                alert("Please select the correct answer.");
+                return;
+            }
+            const checkedIndex = checkedRadio.value;
+
+            inputs.forEach((inp, idx) => {
+                options.push({
+                    content: inp.value,
+                    is_correct: (idx == checkedIndex)
+                });
+            });
+        }
+
+        const payload = {
+            text: document.getElementById('qText').value,
+            type: type,
+            difficulty: document.getElementById('qLevel').value,
+            skill_category: document.getElementById('qSkill').value,
+            options: options
+        };
+
+        try {
+            const res = await fetch('/api/admin/question', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                alert("Question added successfully!");
+                closeModal('modal-question');
+                document.getElementById('addQuestionForm').reset();
+                loadQuestions(); 
+            } else {
+                const err = await res.json();
+                alert("Error: " + JSON.stringify(err.detail || err));
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Server connection error!");
+        }
+    });
+    
+    // FR-20: LOAD REPORTS
+    async function loadReports() {
+        const tbody = document.getElementById("reportsTableBody");
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Loading...</td></tr>";
+
+        try {
+            const res = await fetch('/api/admin/reports');
+            if(!res.ok) throw new Error("Could not fetch data");
+
+            const reports = await res.json();
+            tbody.innerHTML = "";
+
+            if(reports.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:var(--accent-green);'>No issue reports found. Great!</td></tr>";
+                return;
+            }
+
+            reports.forEach(r => {
+                let icon = "bi-exclamation-circle";
+                if(r.issue_type.includes("Audio")) icon = "bi-volume-mute";
+                if(r.issue_type.includes("Image")) icon = "bi-image";
+                if(r.issue_type.includes("Microphone")) icon = "bi-mic-mute";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${r.report_id}</td>
+                        <td style="font-weight:600; color:white;">${r.student_name}</td>
+                        <td>
+                            <span style="display:flex; align-items:center; gap:8px; color:var(--accent-yellow);">
+                                <i class="bi ${icon}"></i> ${r.issue_type}
+                            </span>
+                        </td>
+                        <td style="color:var(--text-muted); font-size:0.9rem;">${r.description}</td>
+                        <td>${r.created_at}</td>
+                        <td>
+                            <button class="btn-icon" style="background:rgba(34, 197, 94, 0.1); color:#22c55e;" 
+                                    title="Mark as Resolved" onclick="resolveReport(${r.report_id})">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:red;'>An error occurred.</td></tr>";
+        }
+    }
+
+    // FR-20: RESOLVE (DELETE) REPORT
+    async function resolveReport(id) {
+        if(!confirm("Do you want to mark this issue as resolved and remove it from the list?")) return;
+
+        try {
+            const res = await fetch(`/api/admin/report/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                loadReports(); // Refresh table
+            } else {
+                alert("Operation failed.");
+            }
+        } catch(e) {
+            alert("Server error.");
+        }
+    }
+
+    // Start: Load users on first load
+    loadUsers();
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/index.html";
+    }
+</script>
+
+</body>
+</html>

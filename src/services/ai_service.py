@@ -101,7 +101,7 @@ class AIModule:
                     "grammar_errors": ["list specific errors"],
                     "suggestions": ["suggestion1", "suggestion2"],
                     "corrected_text": "corrected version",
-                    "feedback": "Give strict but constructive feedback in English. Mention why the score is low if sentences are too simple."
+                    "feedback_tr": "Give strict but constructive feedback in English. Mention why the score is low if sentences are too simple."
                 }}
                 Do not use markdown blocks.
                 """
@@ -168,50 +168,65 @@ class AIModule:
         final_score = int(max(0, min(100, raw_score)))
 
         # Generate Feedback
-        feedback_text = "Automated analysis performed due to server load. "
+        feedback_tr = "Automated analysis performed due to server load. "
         if final_score > 70:
-            feedback_text += "Your vocabulary diversity and sentence structure are quite good."
+            feedback_tr += "Your vocabulary diversity and sentence structure are quite good."
         elif final_score > 50:
-            feedback_text += "Average text. You can improve by using conjunctions (however, because)."
+            feedback_tr += "Average text. You can improve by using conjunctions (however, because)."
         else:
-            feedback_text += "Your text is a bit short or simple. Try constructing longer sentences."
+            feedback_tr += "Your text is a bit short or simple. Try constructing longer sentences."
 
         return {
             "score": final_score,
             "grammar_errors": [], 
             "suggestions": ["Try to use more 'academic vocabulary'.", "Extend your sentences with conjunctions."],
             "corrected_text": text,
-            "feedback": feedback_text
+            "feedback_tr": feedback_tr
         }
 
     # ----------------------------------------------------------------
     # 3. SPEAKING (WHISPER + FILE CHECK)
     # ----------------------------------------------------------------
     def speech_to_text(self, audio_path: str) -> str:
+        # Hata mesajı sabiti
+        ERROR_MSG = "[The audio was unintelligible or there was a technical error. Please check your microphone and try again.]"
+
+        # 1. Dosya Var mı?
         if not os.path.exists(audio_path):
-            return self._get_mock_speech_text()
+            print(f"❌ Ses dosyası bulunamadı: {audio_path}")
+            return ERROR_MSG
 
+        # 2. Dosya Boyutu Kontrolü (Çok küçükse boş kayıttır)
         file_size = os.path.getsize(audio_path)
-        if file_size < 1000: 
-            return self._get_mock_speech_text()
+        if file_size < 1000: # 1KB altı
+            print("⚠️ Ses dosyası çok küçük (Boş kayıt).")
+            return ERROR_MSG
 
+        # 3. Whisper ile Çeviri
         if self.stt_model:
             try:
+                # fp16=False uyarısını susturmak için CPU modunda şart değil ama güvenli
                 result = self.stt_model.transcribe(audio_path, fp16=False)
                 text = result["text"].strip()
-                if not text: return self._get_mock_speech_text()
+                
+                # Eğer Whisper boş döndüyse
+                if not text: 
+                    return ERROR_MSG
+                
                 return text
-            except Exception:
-                pass # Return mock if error
+            except Exception as e:
+                print(f"❌ Whisper Çeviri Hatası: {e}")
+                return ERROR_MSG
         
-        return self._get_mock_speech_text()
+        # Whisper Yüklü Değilse
+        return "[Sistemde Ses Modülü Yüklü Değil]"
 
     def _create_fallback_response(self, text, error_msg, score=0):
-        return { "score": score, "grammar_errors": [], "suggestions": [error_msg], "corrected_text": text, "feedback": error_msg }
-
-    def _get_mock_speech_text(self):
-        simulated_transcripts = [
-            "I believe that technology has improved our lives significantly.",
-            "My favorite hobby is playing football because it is very exciting."
-        ]
-        return random.choice(simulated_transcripts)
+        # Puan 0 olduğunda feedback olarak hata mesajını dön
+        return { 
+            "score": score, 
+            "grammar_errors": [], 
+            "suggestions": ["Please check your microphone.", "Speak clearly and loudly."], 
+            "corrected_text": text, 
+            "feedback_tr": error_msg 
+        }
